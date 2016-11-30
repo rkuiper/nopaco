@@ -13,7 +13,10 @@ setMethod(
     f= "getPsi", 
     signature= signature(x="matrix",y="NULL"),
     function(x,y,...){
-        getPsi(x=x,y=matrix(ncol=0,nrow=0))
+		dots<-list(...);
+        doCheck = TRUE;
+        if (!is.null(dots$doCheck)){doCheck = dots$doCheck;}
+        getPsi(x=x,y=matrix(ncol=0,nrow=0),doCheck=doCheck)
     }
 )
 #' @rdname getPsi-methods
@@ -47,7 +50,7 @@ getVar<-function(mat,...){
     mat <-standardChecks$x
     bn<-rowSums(is.finite(mat))
     t<-sum(bn)
-    omega<-sum(bn*(bn-1)*(t-bn))
+    omega<-getOmega(bn)
     cij<-0
     for (i in c(1:(length(bn)-1))){
     for (j in c((i+1):length(bn))){
@@ -97,7 +100,7 @@ exactProb<-function(bn, ...){
         bn,
         as.logical(skipTests),
         as.logical(options("concordance.verbose")$concordance.verbose))
-    res[,2]<-res[,2]/sum(res[,2])
+    
     return(res)
 }
  
@@ -218,28 +221,49 @@ psifromR<-function(r){
             }
         }
         ##Exclude observations with less than two replicates
-        isOK1<-rowSums(is.finite(x))>1
-        if (!all(isOK1)){
-            x<-x[isOK1,,drop=FALSE]
-            if (!is.null(y)){
-                y<-y[isOK1,,drop=FALSE]
-            }
-        }
-        isOK2<-TRUE;
-        if (!is.null(y)){
-            isOK2<-rowSums(is.finite(y))>1
-            if (!all(isOK2)){
-                y<-y[isOK2,,drop=FALSE]
-                if (!is.null(x)){
-                    x<-x[isOK2,,drop=FALSE]
-                }
-            }
-        }
-        if ( (sum(!isOK1)+sum(!isOK2))>0){
-            warning(paste("Excluding observations with less than two known replicates (n=",sum(!isOK1)+sum(!isOK2),")",sep=""))
-        }    
+        if(0){###BEGIN: TEST
+			isOK1<-rowSums(is.finite(x))>1
+		    if (!all(isOK1)){
+		        x<-x[isOK1,,drop=FALSE]
+		        if (!is.null(y)){
+		            y<-y[isOK1,,drop=FALSE]
+		        }
+		    }
+		    isOK2<-TRUE;
+		    if (!is.null(y)){
+		        isOK2<-rowSums(is.finite(y))>1
+		        if (!all(isOK2)){
+		            y<-y[isOK2,,drop=FALSE]
+		            if (!is.null(x)){
+		                x<-x[isOK2,,drop=FALSE]
+		            }
+		        }
+		    }
+		    if ( (sum(!isOK1)+sum(!isOK2))>0){
+		        warning(paste("Excluding observations with less than two known replicates (n=",sum(!isOK1)+sum(!isOK2),")",sep=""))
+		    }    
+		}###END: TEST
     }
     x[!is.finite(x)]<-Inf
     if (!is.null(y)) y[!is.finite(y)]<-Inf
     return(list(x=x,y=y))
+}
+
+getOmega<-function(bn){
+    sum(bn*(bn-1)*(sum(bn)-bn))
+}
+
+getAgreeMat<-function(mat){
+    am<-matrix(2/3,ncol=ncol(mat),nrow=ncol(mat))
+    n<-matrix(1,ncol=ncol(mat),nrow=ncol(mat))
+    for (i in c(1:(ncol(mat)-1))){
+    for (j in c((i+1):(ncol(mat)))){
+        n[i,j]<-n[j,i]<-sum(rowSums(is.finite(mat[,c(i,j)]))==2)
+        if (n[i,j]>1){
+            am[i,j]<-am[j,i]<-getPsi(mat[rowSums(is.finite(mat[,c(i,j)]))==2,c(i,j)])
+        }
+    }}
+    diag(am)<-1
+    diag(n)<-apply(mat,2,function(x){sum(!is.na(x))})
+    list(mat=am,n=n)
 }

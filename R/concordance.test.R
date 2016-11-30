@@ -1,59 +1,5 @@
 singleMatMethods<-c("exact","altBeta","beta","normal","simulation")
 
-dwish<-function (W, v, S,log.p=FALSE) 
-{
-    ##This function has been obtained from the MCMCpack packages but added the log.p argument
-    if (!is.matrix(S)) 
-        S <- matrix(S)
-    if (nrow(S) != ncol(S)) {
-        stop(message = "W not square in dwish()\n\n")
-    }
-    if (!is.matrix(W)) 
-        W <- matrix(W)
-    if (nrow(W) != ncol(W)) {
-        stop(message = "W not square in dwish()\n\n")
-    }
-    if (nrow(S) != ncol(W)) {
-        stop(message = "W and X of different dimensionality in dwish()\n\n")
-    }
-    if (v < nrow(S)) {
-        stop(message = "v is less than the dimension of S in  dwish()\n\n")
-    }
-    k <- nrow(S)
-    detS <- det(S)
-    detW <- det(W)
-    if (!log.p){
-        gammapart <- 1
-    
-        for (i in 1:k) {
-            gammapart <- gammapart * gamma((v + 1 - i)/2)
-        }
-        denom <- gammapart * 2^(v * k/2) * pi^(k * (k - 1)/4)
-         
-        
-        hold <- solve(S) %*% W
-        tracehold <- sum(hold[row(hold) == col(hold)])
-        num <- detS^(-v/2) * detW^((v - k - 1)/2) * exp(-1/2 * tracehold)
-        return(num/denom)
-    } else {
-        gammapart<-sum(lgamma((v + 1 - c(1:k))/2))
-        denom <- gammapart + log(2)*(v * k/2)+log(pi)*(k * (k - 1)/4)
-     
-        if (detS<=0 ){ 
-            termA<-log(detS^(-v/2))
-        } else {termA<-log(detS)*(-v/2)}
-        if (detW<=0 ){ 
-            termB<-log( detW^((v - k - 1)/2))
-        } else {termB<-log(detW)*((v - k - 1)/2)}
-        hold <- solve(S) %*% W
-        tracehold <- sum(hold[row(hold) == col(hold)])
-        num <- termA +termB+(-1/2 * tracehold)
-         
-        return(num-denom)
-    }
-}
-
-
 ############################################
 #' Class ConcordanceTest
 #'
@@ -109,15 +55,15 @@ setMethod("initialize",
         if (!is.numeric(dotList[["psi1"]]) | length(dotList[["psi1"]])!=1 ){
             stop("psi1 must be a numeric value of length 1")
         }
-        if (dotList[["psi1"]]<0.4 | dotList[["psi1"]]>1  ) {
-            stop("psi1 must be 0.4<psi1<=1")
+        if (dotList[["psi1"]]<0 | dotList[["psi1"]]>1  ) {
+            stop("psi1 must be 0<=psi1<=1")
         }
         if (!is.numeric(dotList[["psi2"]]) | length(dotList[["psi2"]])!=1 ){
             stop("psi2 must be a numeric value of length 1")
         }
         if (!is.na(dotList[["psi2"]])){
-            if (dotList[["psi2"]]<0.4 | dotList[["psi2"]]>1  ) {
-                stop("psi2 must be 0.4<psi2<=1")
+            if (dotList[["psi2"]]<0 | dotList[["psi2"]]>1  ) {
+                stop("psi2 must be 0<=psi2<=1")
             }
         }
         if (!is.numeric(dotList[["ci.lower"]]) | length(dotList[["ci.lower"]])!=1 ){
@@ -403,9 +349,7 @@ function(x,y=NULL,alternative=NULL,alpha=0.05,...){
     psi1<-obs[1]
     psi2<-obs[2]
     p<-ci.lower<-ci.upper<-as.numeric(NA)
-    .getOmega<-function(bn){
-        sum(bn*(bn-1)*(sum(bn)-bn))
-    }
+
     .minPsi<-function(bn){
         bn<-sort(bn,decreasing=TRUE)
         maxB<-max(bn)
@@ -440,20 +384,7 @@ function(x,y=NULL,alternative=NULL,alpha=0.05,...){
         a<-mu*b/(1-mu)
         (qbeta(p,a,b,lower.tail=lower.tail)-targetValue)^2
     }
-    getAgreeMat<-function(mat){
-        am<-matrix(2/3,ncol=ncol(mat),nrow=ncol(mat))
-        n<-matrix(1,ncol=ncol(mat),nrow=ncol(mat))
-        for (i in c(1:(ncol(mat)-1))){
-        for (j in c((i+1):(ncol(mat)))){
-            n[i,j]<-n[j,i]<-sum(rowSums(is.finite(mat[,c(i,j)]))==2)
-            if (n[i,j]>1){
-                am[i,j]<-am[j,i]<-getPsi(mat[rowSums(is.finite(mat[,c(i,j)]))==2,c(i,j)])
-            }
-        }}
-        diag(am)<-1
-        diag(n)<-apply(mat,2,function(x){sum(!is.na(x))})
-        list(mat=am,n=n)
-    }
+   
     b<-ncol(x)
     if (is.null(y)){
         if (method=="exact"){
@@ -464,15 +395,10 @@ function(x,y=NULL,alternative=NULL,alpha=0.05,...){
                 exactProb(bn,skipTests=forceExact)
             },silent=TRUE)
             if (!inherits(exactDist,"try-error")){
-                #if (alternative=='less'){
-                #    p<-sum(exactDist[((exactDist[,1])<=obs),2])
-                #    ci.lower<-min(exactDist[,1])
-                #} else if (alternative=='two.sided'){
-                #    p<- sum(exactDist[ ! ((exactDist[,1] > 2/3-abs(obs-2/3)) &  (exactDist[,1] < 2/3+abs(obs-2/3))) ,2])
-                #} else if (alternative=='greater'){
+               
                 p<-sum(exactDist[ ((exactDist[,1])>=obs),2])
                    ci.upper<-max(exactDist[,1])
-                #}
+       
             }
             else if (!is.null(forceExact)){
                 if(forceExact==TRUE) stop(exactDist)
@@ -482,98 +408,43 @@ function(x,y=NULL,alternative=NULL,alpha=0.05,...){
         if (method != "exact"){        
             obsvar<-getVar(x,doCheck=FALSE) ##Get variance given H0(psi=2/3)
             bn<-rowSums(is.finite(x))
-            meanB<-mean(bn)
+            meanB<-sum(bn*(bn*(bn-1)))/sum(bn*(bn-1)) #mean(bn)
             n<-length(bn)
             if (method=="altBeta"){
                 x<-(2/3 - sqrt(meanB+1)/(9/2*(meanB-1)^1.5))
-                iii<-2/.getOmega(bn)
+                iii<-2/getOmega(bn)
                 alphaPar<-(4*(meanB+1)/(81*(meanB-1)^3)-((8/9)*(meanB+1)^1.5)/(81*(meanB-1)^4.5))/obsvar-sqrt(4*(meanB+1)/(81*(meanB-1)^3))
                 betaPar<-alphaPar*(9*(meanB-1)^1.5/(2*sqrt(meanB+1))-1)
-                #if (alternative=='less') {
-                #    p<-pbeta(obs-x-iii,shape1=alphaPar,shape2=betaPar,lower.tail=TRUE)
-                #    est<-optimize(interval=c(1,1e8),mu=obs-x-iii,p=p,lower.tail=FALSE,targetValue=2/3-x-iii, f=.confEstimatorBeta)
-                #    betaEst<-est$minimum
-                #    alphaEst<-(obs-x-iii)*betaEst/(1-(obs-x-iii))
-                #    ci.lower=.minPsi(bn)
-                #    ci.upper=qbeta(alpha,alphaEst,betaEst,lower.tail=FALSE)+x+iii
-                #} else if (alternative=='greater') {
+             
                     p<-pbeta(obs-x-iii,shape1=alphaPar,shape2=betaPar,lower.tail=FALSE)
                     est<-optimize(interval=c(1,1e8),mu=obs-x-iii,p=p,lower.tail=TRUE,targetValue=2/3-x-iii, f=.confEstimatorBeta)
                     betaEst<-est$minimum
                     alphaEst<-(obs-x-iii)*betaEst/(1-(obs-x-iii))
                     ci.lower=max(.minPsi(bn),qbeta(alpha,alphaEst,betaEst,lower.tail=TRUE)+x+iii)
                     ci.upper=1
-                #} else if (alternative=='two.sided') {
-                #    p.left<-pbeta(alphaPar/(alphaPar+betaPar)-(abs((obs-x-iii)-alphaPar/(alphaPar+betaPar))) ,shape1=alphaPar,shape2=betaPar,lower.tail=TRUE)
-                #    p.right<-pbeta(alphaPar/(alphaPar+betaPar)+(abs((obs-x-iii)-alphaPar/(alphaPar+betaPar))) ,shape1=alphaPar,shape2=betaPar,lower.tail=F)
-                #    p<-p.left+ p.right
-                #    if (obs<(2/3)){
-                #        est<-optimize(interval=c(1,1e8),mu=obs-x-iii,p=p,lower.tail=FALSE,targetValue=2/3-x-iii, f=.confEstimatorBeta)
-                #        betaEst<-est$minimum
-                #    } else {
-                #        est<-optimize(interval=c(1,1e8),mu=obs-x-iii,p=p,lower.tail=TRUE,targetValue=2/3-x-iii, f=.confEstimatorBeta)
-                #        betaEst<-est$minimum            
-                #    }
-                #    alphaEst<-(obs-x-iii)*betaEst/(1-(obs-x-iii))
-                #    ci.lower=max(.minPsi(bn),qbeta(alpha,alphaEst,betaEst,lower.tail=TRUE)+x+iii)
-                #    ci.upper=qbeta(alpha,alphaEst,betaEst,lower.tail=FALSE)+x+iii
-                #}
+                
             } else if (method=="beta"){
                 m<-2/3
                 v<-obsvar
                 if (v>=(m*(1-m))){stop("Cannot approximate by beta due to overdispersion of estimates")}
                 alphaPar<-m*(m*(1-m)/v-1)
                 betaPar<-(1-m)*(m*(1-m)/v-1)
-                #if (alternative=='less') {
-                #    p<-pbeta(obs,shape1=alphaPar,shape2=betaPar,lower.tail=TRUE)
-                #    est<-optimize(interval=c(1,1e8),mu=obs,p=p,lower.tail=FALSE,targetValue=2/3,f=.confEstimatorBeta)
-                #    betaEst<-est$minimum
-                #    alphaEst<-obs*betaEst/(1-obs)
-                #    ci.lower=.minPsi(bn)
-                #    ci.upper=qbeta(alpha,alphaEst,betaEst,lower.tail=FALSE)
-                #} else if (alternative=='greater') {
+               
                     p<-pbeta(obs,shape1=alphaPar,shape2=betaPar,lower.tail=FALSE)
                     est<-optimize(interval=c(1,1e8),mu=obs,p=p,lower.tail=TRUE,targetValue=2/3, f=.confEstimatorBeta)
                     betaEst<-est$minimum
                     alphaEst<-obs*betaEst/(1-obs)
                     ci.upper=1
                     ci.lower=max(.minPsi(bn),qbeta(alpha,alphaEst,betaEst,lower.tail=TRUE))
-                #} else if (alternative=='two.sided') {
-                #    p.left<-pbeta(alphaPar/(alphaPar+betaPar)-(abs(obs-alphaPar/(alphaPar+betaPar))) ,shape1=alphaPar,shape2=betaPar,lower.tail=TRUE)
-                #    p.right<-pbeta(alphaPar/(alphaPar+betaPar)+(abs(obs-alphaPar/(alphaPar+betaPar))) ,shape1=alphaPar,shape2=betaPar,lower.tail=F)
-                #    p<-p.left+ p.right
-                #           
-                #    if (obs<(2/3)){
-                #        est<-optimize(interval=c(1,1e8),mu=obs,p=p,lower.tail=FALSE,targetValue=2/3, f=.confEstimatorBeta)
-                #        betaEst<-est$minimum
-                #    } else {
-                #        est<-optimize(interval=c(1,1e8),mu=obs,p=p,lower.tail=TRUE,targetValue=2/3, f=.confEstimatorBeta)
-                #        betaEst<-est$minimum            
-                #    }
-                #    alphaEst<-obs*betaEst/(1-obs)
-                #               ci.lower=max(.minPsi(bn),qbeta(alpha,alphaEst,betaEst,lower.tail=TRUE))
-                #    ci.upper=qbeta(alpha,alphaEst,betaEst,lower.tail=FALSE)
-                #}  
+                
             } else if (method=="normal"){ 
-                #if (alternative=='less') {
-                #    p<-pnorm(q=obs,mean=2/3,sd=sqrt(obsvar),lower.tail=TRUE)
-                #    if (p>(alpha/10)) { ##otherwise perform estimate by simulation (see below)
-                #        ci.lower<-.minPsi(bn)
-                #        ci.upper<-qnorm(alpha,mean=obs,sd=sqrt(obsvar),lower.tail=F)
-                #    }
-                #} else if (alternative=='greater') {
+               
                     p<-pnorm(q=obs,mean=2/3,sd=sqrt(obsvar),lower.tail=FALSE)
                     if (p>(alpha/10)) { ##otherwise perform estimate by simulation (see below)
                         ci.lower<-qnorm(alpha,mean=obs,sd=sqrt(obsvar),lower.tail=TRUE)
                            ci.upper<-1
                     }
-                #} else if (alternative=='two.sided') {
-                #       p<-2*pnorm(q=abs(obs-2/3)+2/3,mean=2/3,sd=sqrt(obsvar),lower.tail=F)
-                #    if (p>(alpha/10)) { ##otherwise perform estimate by simulation (see below)
-                #       ci.lower<-qnorm(alpha/2,mean=obs,sd=sqrt(obsvar),lower.tail=T)
-                #           ci.upper<-qnorm(alpha/2,mean=obs,sd=sqrt(obsvar),lower.tail=F)
-                #    }
-                #}
+                
             } else if (method == "simulation"){ stop("simulation is not available for testing a single concordance coefficient")
             } else {    stop("Unknown method given!") }
         }#END Exact
@@ -610,34 +481,11 @@ function(x,y=NULL,alternative=NULL,alpha=0.05,...){
         am<-getAgreeMat(mergemat) 
         cormat<-am$mat
         cormat[]<-rfromPsi(am$mat)
-        myf2<-function(par,cormat,nMat){
-            #cat(log(par),"\n")
-            cormat[cormat==1]<-1-1e-6 ##Aim: the non-diagonal elements should not be 1
-            diag(cormat)<-1
-            r1<-par[1]
-            r2<-par[2]
-            S1<-matrix(c(1,r1,r1,1),2,2)
-            S2<-matrix(c(1,r2,r2,1),2,2)
-            res<-nMat*NA
-            for (i in c(1:(-1+ncol(nMat)))){
-            for (j in c((i+1):(ncol(nMat)))){
-                WW<-matrix(c(1,cormat[i,j],cormat[j,i],1),2,2)*(nMat[i,j])
-                if ( (i>(ncol(nMat)/2)& j>(ncol(nMat)/2)) | (i<=(ncol(nMat)/2)& j<=(ncol(nMat)/2)) ){
-                    ##Ondiag quad.
-                    res[i,j]<-dwish(W=WW,v=nMat[i,j]-1,S=S1,log.p=TRUE)
-                } else {
-                    ##Offdiag quad.
-                    res[i,j]<-dwish(W=WW,v=nMat[i,j]-1,S=S2,log.p=TRUE)
-                }
-            }}
-            res<-sum(res,na.rm=TRUE)
-            -res
-        }
+        
         b<-ncol(x)
-        r1<-abs((sum(cormat[1:b,1:b]+cormat[-c(1:b),-c(1:b)])/2 - b)/(b*b-b)) #Average observed correlation
+        r1<-(sum(cormat[1:b,1:b]+cormat[-c(1:b),-c(1:b)])/2 - b)/(b*b-b) #Average observed correlation
         r2<-(sum(cormat[1:b,-c(1:b)]+cormat[-c(1:b),1:b])/2)/(b*b) #Average observed correlation
         par<-c(r1,r2)
-        #par<-optim(par=c(r1,r2),fn=myf2,cormat=cormat,nMat=am$n,upper=c(1-1e-6,1-1e-6),lower=c(-1+1e-6,-1+1e-6),method='L-BFGS-B')$par 
         cormatH0<-matrix(par[2],2*b,2*b)
         cormatH0[1:(b),1:(b)]<-par[1]
         cormatH0[-c(1:(b)),-c(1:(b))]<-par[1]

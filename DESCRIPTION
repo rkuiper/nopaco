@@ -1,8 +1,8 @@
 Package: nopaco
 Type: Package
 Title: Non-Parametric Concordance Coefficient: A Non-Parametric Concordance Test
-Version: 0.99.0
-Date: 2016-11-21
+Version: 0.99.1
+Date: 2016-11-30
 Author: Rowan Kuiper and Remco Hoogenboezem
 Maintainer: R.Kuiper <r.kuiper.emc@gmail.com>
 Description: A non-parametric test for multi-observer concordance and

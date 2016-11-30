@@ -1,3 +1,4 @@
+
 /*
  * NOTE: This file is for internal use only.
  *       Do not use these #defines in your own program!
@@ -44,3 +45,4 @@
 
 /* Puts following code inside the Google namespace */
 #define _START_GOOGLE_NAMESPACE_ namespace google {
+

@@ -186,7 +186,7 @@ SEXP exactDistr202(SEXP bn,SEXP skipTests, SEXP verbose)
 
     nStateElements= nprhs;    
     iKeyLen=(nStateElements>>1)+(nStateElements&1);
-	cout<<"keyLen:"<<iKeyLen<<"\n";
+	
 
     pStateLimits=(int*)calloc(nStateElements+1,sizeof(int));
     pState=(int*)calloc(nStateElements+(nStateElements&1),sizeof(int));
@@ -195,19 +195,26 @@ SEXP exactDistr202(SEXP bn,SEXP skipTests, SEXP verbose)
     iMaxLevel=0;
     int imaxB = 0;
     
+	int nSmallerThan1 = 0;
+	int nBetween1and7 = 0;
+	int nGreaterThan7 = 0;
     for(iElement=0;iElement<nStateElements;iElement++) //from 1 to n
     {
-       	if(dStateLimit<=1 || dStateLimit>7)
-		{
-		    error("Number of replicates must be in the range of [2...7]")  ;         
-		} 
-    	dStateLimit= prhs[iElement]; //statelimit = max(b)
+     	dStateLimit= prhs[iElement]; //statelimit = max(b)
          
 		iMaxLevel+=pStateLimits[iElement]=dStateLimit;
 		if (dStateLimit >imaxB ){imaxB =dStateLimit; }
+		
+		if(dStateLimit>7) nGreaterThan7++;
+       	else if(dStateLimit>1) nBetween1and7++;
+		else if(dStateLimit<1) nSmallerThan1++;
     }
-    
 
+
+	if (nGreaterThan7>0 || nBetween1and7==0 || nSmallerThan1>0) 
+	{
+	    error("Number of replicates in all subject cannot exceed 7. In addition there must be at least one subject that has >1 replicates.")  ;         
+	} 
 
 
 	if (LOGICAL(skipTests)[0]==false){
@@ -243,8 +250,7 @@ SEXP exactDistr202(SEXP bn,SEXP skipTests, SEXP verbose)
 
     for(iLevel=1;iLevel<=iMaxLevel;iLevel++)
     {
-		//cout << "LEVEL: " << iLevel << "\n";
-        #if !defined _WIN64 || !defined _WIN32        
+		#if !defined _WIN64 || !defined _WIN32        
         if (LOGICAL(verbose)[0]==true){
             Rprintf("\r Exact distribution  %.1f \%           ",estimateProgress(imaxB, nStateElements,iLevel ));        
         }
@@ -302,15 +308,11 @@ SEXP exactDistr202(SEXP bn,SEXP skipTests, SEXP verbose)
     
     dLogSum=log(0.0);
     
-    //dScale=1.0/double(iMaxLevel);
     dScale=1.0/omega;
-	//cout << "Omega = " << omega << "\tdScale = " << dScale<<"\n";
-    //cout << "\nMAXLEVEL:" << iMaxLevel << endl;
-    
+	 
     for(iElement=0,iPrevNode=pPrevNode->begin();iElement<nElements;iElement++,iPrevNode++)
     {
-		//cout<<"iPrevNode->first: " << iPrevNode->first << "\n";
-        pConcordance[iElement]=1- iPrevNode->first*dScale;
+	    pConcordance[iElement]=1- iPrevNode->first*dScale;
         dLogSum=LogSum(dLogSum,(pProbability[iElement]=iPrevNode->second));
     }
 
