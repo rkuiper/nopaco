@@ -21,7 +21,7 @@ Extracts argument values from a \code{\link{ConcordanceTest-class}} object
 }
 \examples{
 
-matRandom <- matrix(rnorm(30),10,3)
+matRandom <- matrix(rnorm(3*20),20,3)
 testResult <- concordance.test(matRandom)
 names(testResult)
 testResult$psi

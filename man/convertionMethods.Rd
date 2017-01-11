@@ -28,7 +28,7 @@ The convertion is performed following the relationship described by Rothery (197
 \examples{
 
 #Generate a matrix without concordance
-matRandom <- matrix(rnorm(30),10,3)
+matRandom <- matrix(rnorm(3*20),20,3)
 result<-concordance.test(matRandom) 
 getPsi(result) #concordance coefficient
 result$ci      #95\% confidence interval

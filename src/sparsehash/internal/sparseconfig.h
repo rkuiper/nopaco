@@ -1,4 +1,3 @@
-
 /*
  * NOTE: This file is for internal use only.
  *       Do not use these #defines in your own program!
@@ -16,8 +15,10 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
-/* Define to 1 if the system has the type `long long'. */
-#define HAVE_LONG_LONG 1
+#if !defined _WIN64 && !defined _WIN32
+	/* Define to 1 if the system has the type `long long'. */
+	#define HAVE_LONG_LONG 1
+#endif
 
 /* Define to 1 if you have the `memcpy' function. */
 #define HAVE_MEMCPY 1

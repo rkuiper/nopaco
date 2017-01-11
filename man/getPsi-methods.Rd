@@ -34,7 +34,7 @@ A numeric vector with coefficient(s)
 }
 \examples{
 
-matRandom <- matrix(rnorm(30),10,3)
+matRandom <- matrix(rnorm(3*20),20,3)
 testResult <- concordance.test(matRandom)
 getPsi(testResult)
 getPsi(matRandom)

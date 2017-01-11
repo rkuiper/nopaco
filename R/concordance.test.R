@@ -145,7 +145,7 @@ setMethod("show",
 #'
 #' @examples
 #'
-#' matRandom <- matrix(rnorm(30),10,3)
+#' matRandom <- matrix(rnorm(3*20),20,3)
 #' testResult <- concordance.test(matRandom)
 #' names(testResult)
 #' @export
@@ -173,7 +173,7 @@ setMethod( "names",
 #'
 #' @examples
 #'
-#' matRandom <- matrix(rnorm(30),10,3)
+#' matRandom <- matrix(rnorm(3*20),20,3)
 #' testResult <- concordance.test(matRandom)
 #' names(testResult)
 #' testResult$psi
@@ -230,7 +230,7 @@ setMethod(
 #'
 #' @examples
 #'
-#' matRandom <- matrix(rnorm(30),10,3)
+#' matRandom <- matrix(rnorm(3*20),20,3)
 #' testResult <- concordance.test(matRandom)
 #' getPsi(testResult)
 #' coef(testResult)
@@ -289,13 +289,13 @@ setMethod("coef",
 #' require(MASS) ##to use mvrnorm function
 #' 
 #' #Generate a matrix without concordance
-#' matRandom <- matrix(rnorm(30),10,3)
+#' matRandom <- matrix(rnorm(3*20),20,3)
 #' concordance.test(matRandom) 
 #'
 #' #Generate a matrix with strong concordance
 #' sigma<-matrix(0.8,3,3)
 #' diag(sigma)<-1
-#' matConcordant <- mvrnorm(10,mu=rep(0,3),Sigma=sigma)
+#' matConcordant <- mvrnorm(20,mu=rep(0,3),Sigma=sigma)
 #' concordance.test(matConcordant)
 #'
 #' #Test concordances between matrices
@@ -362,23 +362,7 @@ function(x,y=NULL,alternative=NULL,alpha=0.05,...){
         Q[is.na(R)]<-NA
         getPsi(Q)
     }
-    .getSimulation<-function(mat){
-                rmat1<-mat
-                rmat1[]<-rank(mat,ties.method='random')
-                rmat1[!is.finite(mat)]<-NA
-                cormat<-cor(rmat1,use="pairwise.complete.obs")
-                am<-getAgreeMat(rmat1) 
-                meanB<-mean(rowSums(!is.na(mat)))
-                cormat<-am$mat
-                cormat[]<-rfromPsi(am$mat)
-                if (!all(eigen(cormat)$value>0)){
-                    cormat<-as.matrix(nearPD(cormat,keepDiag=TRUE,maxit=10000)$mat)
-                }
-                SigmaEV <- eigen(cormat)
-                mychol<-t(SigmaEV$vectors %*% diag(sqrt(SigmaEV$values)))
-                samplePsi<-.sampleVariance(mychol,mat)
-                samplePsi
-    }  
+
     .confEstimatorBeta<-function(x,mu,p,lower.tail,targetValue){
         b<-x
         a<-mu*b/(1-mu)
@@ -450,18 +434,22 @@ function(x,y=NULL,alternative=NULL,alpha=0.05,...){
         }#END Exact
         if (calcCI){
             if (is.na(ci.lower)|is.na(ci.upper)){
-                bs<-.getSimulation(x)
-                ci.method<-"simulation"
-                if (alternative=='less') {
-                    if (is.na(ci.lower)) ci.lower<-.minPsi(bn)
-                    if (is.na(ci.upper)) ci.upper<-quantile(bs,1-alpha)
-                } else if (alternative=='greater') {
-                    if (is.na(ci.lower)) ci.lower<-quantile(bs,alpha)
-                    if (is.na(ci.upper)) ci.upper<-1
-                } else if (alternative=='two.sided') {
-                    if (is.na(ci.lower)) ci.lower<-quantile(bs,alpha/2)
-                    if (is.na(ci.upper)) ci.upper<-quantile(bs,1-alpha/2)
+			    rmat1<-x
+                rmat1[]<-rank(x,ties.method='random')
+                rmat1[!is.finite(x)]<-NA
+                am<-getAgreeMat(rmat1) 
+                cormat<-am$mat
+                cormat[]<-rfromPsi(am$mat)
+                if (!all(eigen(cormat)$value>0)){
+                    cormat<-as.matrix(nearPD(cormat,keepDiag=TRUE,maxit=10000)$mat)
                 }
+                SigmaEV <- eigen(cormat)
+                mychol<-t(SigmaEV$vectors %*% diag(sqrt(SigmaEV$values)))
+                bs<-.sampleVariance(mychol,x)
+               
+				ci.method<-"simulation"
+                if (is.na(ci.lower)) ci.lower<-quantile(bs,alpha)
+                if (is.na(ci.upper)) ci.upper<-1
             }
         }
     } else if (!is.null(y)){

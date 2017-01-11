@@ -250,7 +250,7 @@ SEXP exactDistr202(SEXP bn,SEXP skipTests, SEXP verbose)
 
     for(iLevel=1;iLevel<=iMaxLevel;iLevel++)
     {
-		#if !defined _WIN64 || !defined _WIN32        
+		#if !defined _WIN64 && !defined _WIN32        
         if (LOGICAL(verbose)[0]==true){
             Rprintf("\r Exact distribution  %.1f \%           ",estimateProgress(imaxB, nStateElements,iLevel ));        
         }

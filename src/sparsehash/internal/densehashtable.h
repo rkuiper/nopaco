@@ -101,7 +101,7 @@
 #include "libc_allocator_with_realloc.h"
 #include "../type_traits.h"
 #include <stdexcept>                 // For length_error
-
+#include <R.h> 
 _START_GOOGLE_NAMESPACE_
 
 namespace base {   // just to make google->opensource transition easier
@@ -1173,9 +1173,10 @@ class dense_hashtable {
     // realloc_or_die should only be used when using the default
     // allocator (libc_allocator_with_realloc).
     pointer realloc_or_die(pointer /*ptr*/, size_type /*n*/) {
-      fprintf(stderr, "realloc_or_die is only supported for "
-                      "libc_allocator_with_realloc\n");
-      exit(1);
+      //fprintf(stderr, "realloc_or_die is only supported for "
+      //                "libc_allocator_with_realloc\n");
+      //e xit(1); #Rwn
+	  error("exit code 1: realloc_or_die is only supported for libc_allocator_with_realloc.");
       return NULL;
     }
   };
@@ -1195,9 +1196,10 @@ class dense_hashtable {
     pointer realloc_or_die(pointer ptr, size_type n) {
       pointer retval = this->reallocate(ptr, n);
       if (retval == NULL) {
-        fprintf(stderr, "sparsehash: FATAL ERROR: failed to reallocate "
-                "%lu elements for ptr %p", static_cast<unsigned long>(n), ptr);
-        exit(1);
+        //fprintf(stderr, "sparsehash: FATAL ERROR: failed to reallocate "
+        //        "%lu elements for ptr %p", static_cast<unsigned long>(n), ptr);
+        //e xit(1);
+	    error("exit code 1: sparsehash: FATAL ERROR: failed to reallocate");
       }
       return retval;
     }

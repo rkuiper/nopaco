@@ -42,7 +42,7 @@ bool CEqualKey::operator()(const char * pKey1,const char * pKey2) const
 
 uint64_t MurmurHash(const void * key,int32_t len,uint32_t seed) //MurmurHash2 64 bits version by Austin Appleby
 {
-	const uint64_t m = 0xc6a4a7935bd1e995;
+	const uint64_t m = 0xc6a4a7935bd1e995ULL;
 	const int32_t r = 47;
 
 	uint64_t h = seed ^ (len * m);

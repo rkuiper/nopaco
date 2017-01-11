@@ -69,15 +69,17 @@ getVar<-function(mat,...){
     if (!is.null(missingy)){
         missingy<-is.finite(missingy)
     }
+	oldseed <- .Random.seed
+	set.seed( as.integer(options("concordance.seed")$concordance.seed) )
     psi<-.Call(
         "samplePsi",
         choleskimat,
         missingx,
         missingy,
         as.integer(options("concordance.nDraws")$concordance.nDraws),
-        as.integer(options("concordance.nCPU")$concordance.nCPU),
-        as.integer(options("concordance.seed")$concordance.seed)
+        as.integer(options("concordance.nCPU")$concordance.nCPU)
     )
+	.Random.seed <- oldseed
     if (is.null(missingy)){
         return(psi[,1,drop=FALSE])
     }

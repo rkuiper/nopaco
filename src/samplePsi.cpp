@@ -2,6 +2,8 @@
 Generate random correlated matrices and determine their psi
 */
 
+# define M_PIl          3.141592653589793238462643383279502884L /* pi */
+
 #if defined _WIN64 || defined _WIN32
 	#include <windows.h>
 #else
@@ -16,18 +18,18 @@ Generate random correlated matrices and determine their psi
 #include "samplePsi.h"
 
 #include <algorithm>    // std::min_element, std::max_element
-#include <random>
+#include <Rmath.h> //R's rng's
 using namespace std;
+
 
 void * ThreadFunc(void * pUserData);
 
-void getMatrix(double* mat,int b,int n,unsigned int* seed){
-	//Generate a matrix with random numbers
-	std::default_random_engine generator (*seed);
-	std::normal_distribution<double> distribution(0.0,1.0);
+void getMatrix(double* mat,int b,int n){
+	GetRNGstate();
 	for (int i = 0; i < (b*n); i++){
-		mat[i] = distribution(generator);
+		mat[i] = norm_rand();
 	}
+	PutRNGstate();
 }
 
 void matmultiply(double* mat1,double* mat2,double* outputmat,int b,int n){
@@ -59,7 +61,6 @@ class CJob
     public:
 		//Whatever you need inside the worker thread for this job
 		unsigned int id;
-		unsigned int* seeds;
 		unsigned int nDraws;
 		unsigned int offset;
 		
@@ -206,8 +207,18 @@ void * ThreadFunc(void * pUserData)
 		for (cycle = 0; cycle< job.nDraws; cycle++){
 			//if (bSigintReceived) { break;}
 			 	
-		
-			getMatrix(dataMatrix2,pJobs->maxB1+pJobs->maxB2,pJobs->maxn,job.seeds+cycle);
+			#if defined _WIN64 || defined _WIN32
+			EnterCriticalSection(&pJobs->criticalSection);    //for windows
+			#else
+				pthread_mutex_lock(&pJobs->mutex);
+			#endif	
+			getMatrix(dataMatrix2,pJobs->maxB1+pJobs->maxB2,pJobs->maxn);
+			#if defined _WIN64 || defined _WIN32
+				LeaveCriticalSection(&pJobs->criticalSection);    //for windows
+			#else
+			    pthread_mutex_unlock(&pJobs->mutex);
+			#endif
+
 			matmultiply(dataMatrix2,pJobs->pd_choleski,dataMatrix1,pJobs->maxB1+pJobs->maxB2,pJobs->maxn);
 
 			//cpy to datamatrix3 to datamatrix1 for missingmat1;
@@ -253,24 +264,15 @@ void * ThreadFunc(void * pUserData)
 }
 
 
-void startMultithreadedSampling(double* pd_choleski,int* pi_missingmat1,int* pi_missingmat2,unsigned int nDraws,int maxB1,int maxB2, int n1, int n2,unsigned int nCPU,double* pd_result1, double* pd_result2, unsigned int seed) {
+void startMultithreadedSampling(double* pd_choleski,int* pi_missingmat1,int* pi_missingmat2,unsigned int nDraws,int maxB1,int maxB2, int n1, int n2,unsigned int nCPU,double* pd_result1, double* pd_result2) {
 	
 	unsigned long i;
 	unsigned int iThread;
 	
-	unsigned int* seeds = (unsigned int*)malloc(sizeof(unsigned int) * nDraws);  
-
-	std::default_random_engine generator (seed);
-	std::uniform_int_distribution<unsigned int> distribution(0);	
-	for (unsigned i = 0 ; i < nDraws; i++){
-		seeds[i] =  distribution(generator);
-	}
-
-	
 	CJobs jobs(pd_choleski, pi_missingmat1, pi_missingmat2, nDraws ,maxB1,maxB2, n1,n2, pd_result1, pd_result2);	
 	#if defined _WIN64 || defined _WIN32
 		HANDLE *	pThreads;
-		 pThreads=(HANDLE*)malloc(nCPU*sizeof(HANDLE));
+		pThreads=(HANDLE*)malloc(nCPU*sizeof(HANDLE));
 	#else
 		pthread_t *     pThreads;   
 		pThreads=(pthread_t*)malloc(nCPU*sizeof(pthread_t));
@@ -281,10 +283,9 @@ void startMultithreadedSampling(double* pd_choleski,int* pi_missingmat1,int* pi_
 	//Prepare jobs
 	//----------------------------------------------------------------
 	CJob* job = (CJob*)malloc(nCPU*sizeof(CJob));
-	int offset = 0;
+	unsigned int offset = 0;
 	for (i = 0; i < nCPU; i++){
 		job[i].id=i;
-		job[i].seeds = seeds+offset;
 		job[i].nDraws = (nDraws-offset)/(nCPU-i);
 		job[i].offset = offset;
 		offset +=  	job[i].nDraws;
@@ -339,11 +340,23 @@ void startMultithreadedSampling(double* pd_choleski,int* pi_missingmat1,int* pi_
 
 	free(job);
 	free(pThreads);
-	free(seeds);
 }
 
 extern "C" {
-	SEXP samplePsi(SEXP rP_choleski,SEXP rP_mat1Missing,SEXP rP_mat2Missing,SEXP rP_nDraws,SEXP rP_nCPU, SEXP rP_seed){
+	/*
+	SEXP test(SEXP mat){
+		SEXP Rdim1;
+		PROTECT(Rdim1=getAttrib(mat,R_DimSymbol));
+		int n=INTEGER(Rdim1)[0];
+		int b=INTEGER(Rdim1)[1];
+
+		getMatrix(REAL(mat),b,n);	
+
+		UNPROTECT(1);
+		return(mat);
+	}*/
+
+	SEXP samplePsi(SEXP rP_choleski,SEXP rP_mat1Missing,SEXP rP_mat2Missing,SEXP rP_nDraws,SEXP rP_nCPU){
 		//rP_choleski: A Cholseki matrix of bmax*bmax
 		//rP_bn: A vector of numbers of observations per subject
 		//rP_nDraws: An integer for the number of matrices to draw
@@ -382,9 +395,9 @@ extern "C" {
 		PROTECT(output1 = allocMatrix(REALSXP, *INTEGER(rP_nDraws),2));
 
 		if (n2>0){
-			startMultithreadedSampling(REAL(rP_choleski),LOGICAL(rP_mat1Missing),LOGICAL(rP_mat2Missing),*INTEGER(rP_nDraws),maxB1,maxB2, n1, n2, nCPU, REAL(output1),REAL(output1)+*INTEGER(rP_nDraws),INTEGER(rP_seed)[0]); 
+			startMultithreadedSampling(REAL(rP_choleski),LOGICAL(rP_mat1Missing),LOGICAL(rP_mat2Missing),*INTEGER(rP_nDraws),maxB1,maxB2, n1, n2, nCPU, REAL(output1),REAL(output1)+*INTEGER(rP_nDraws)); 
 		} else {
-			startMultithreadedSampling(REAL(rP_choleski),LOGICAL(rP_mat1Missing),NULL,*INTEGER(rP_nDraws),maxB1,maxB2, n1, n2, nCPU, REAL(output1),REAL(output1)+*INTEGER(rP_nDraws),INTEGER(rP_seed)[0]); 
+			startMultithreadedSampling(REAL(rP_choleski),LOGICAL(rP_mat1Missing),NULL,*INTEGER(rP_nDraws),maxB1,maxB2, n1, n2, nCPU, REAL(output1),REAL(output1)+*INTEGER(rP_nDraws)); 
 		}
 		
 		UNPROTECT(4);
