@@ -46,7 +46,12 @@ extern int		   iMaxLevel;
 
 extern int32_t iKeyLen;
 
+#if defined _WIN32 
+// 64-bit hash for 32-bit platforms
+extern uint64_t MurmurHash( const void * key, int len, unsigned int seed );
+#else
 extern uint64_t MurmurHash(const void * key,int32_t len,uint32_t seed);
+#endif
 extern double LogSum(double dLogX,double dLogY);
 extern long Concordance(int iPivot);
 extern double Probability(int iElement);

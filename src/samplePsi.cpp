@@ -320,7 +320,13 @@ void startMultithreadedSampling(double* pd_choleski,int* pi_missingmat1,int* pi_
 		#else
 		while (pthread_tryjoin_np(pThreads[iThread],0)) {
 			//nanosleep((const struct timespec[]){{0, 100000000}},(struct timespec[]){{0, 100000000}}); //bug:error: taking address of temporary array
-			nanosleep((const struct timespec[]){{0, 100000000}},NULL); 
+			//nanosleep((const struct timespec[]){{0, 100000000}},NULL); //Omit pedantic comound literal error
+
+			timespec sleepValue = {0};
+			const long INTERVAL_MS = 100000000;	
+			sleepValue.tv_nsec = INTERVAL_MS;
+			nanosleep(&sleepValue, NULL);
+
 			/*if (this->verbose){
 				Rprintf("\rEstimating variance: %.1f \%           ",(100.0*jobs.counter)/(*pncycles));
 				R_FlushConsole();

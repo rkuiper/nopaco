@@ -13,27 +13,27 @@
 #define HASH_NAMESPACE std::tr1
 
 /* Define to 1 if you have the <inttypes.h> header file. */
-#define HAVE_INTTYPES_H 1
+//#define HAVE_INTTYPES_H 1
 
-#if !defined _WIN64 && !defined _WIN32
+//#if !defined _WIN64 && !defined _WIN32
 	/* Define to 1 if the system has the type `long long'. */
-	#define HAVE_LONG_LONG 1
-#endif
+	//#define HAVE_LONG_LONG 1
+//#endif
 
 /* Define to 1 if you have the `memcpy' function. */
-#define HAVE_MEMCPY 1
+//#define HAVE_MEMCPY 1
 
 /* Define to 1 if you have the <stdint.h> header file. */
-#define HAVE_STDINT_H 1
+//#define HAVE_STDINT_H 1
 
 /* Define to 1 if you have the <sys/types.h> header file. */
-#define HAVE_SYS_TYPES_H 1
+//#define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if the system has the type `uint16_t'. */
-#define HAVE_UINT16_T 1
+//#define HAVE_UINT16_T 1
 
 /* Define to 1 if the system has the type `u_int16_t'. */
-#define HAVE_U_INT16_T 1
+//#define HAVE_U_INT16_T 1
 
 /* Define to 1 if the system has the type `__uint16'. */
 /* #undef HAVE___UINT16 */
