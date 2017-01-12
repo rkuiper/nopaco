@@ -228,15 +228,15 @@
 #include <stdlib.h>             // for malloc/free
 #include <stdio.h>              // to read/write tables
 #include <string.h>             // for memcpy
-#ifdef HAVE_STDINT_H
-#include <stdint.h>         // the normal place uint16_t is defined
-#endif
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>      // the normal place u_int16_t is defined
-#endif
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h>       // a third place for uint16_t or u_int16_t
-#endif
+//#ifdef HAVE_STDINT_H
+//#include <stdint.h>         // the normal place uint16_t is defined
+//#endif
+//#ifdef HAVE_SYS_TYPES_H
+//#include <sys/types.h>      // the normal place u_int16_t is defined
+//#endif
+//#ifdef HAVE_INTTYPES_H
+//#include <inttypes.h>       // a third place for uint16_t or u_int16_t
+//#endif
 #include <assert.h>             // for bounds checking
 #include <iterator>             // to define reverse_iterator for me
 #include <algorithm>            // equal, lexicographical_compare, swap,...
@@ -247,18 +247,18 @@
 #include <sparsehash/internal/libc_allocator_with_realloc.h>
 
 // A lot of work to get a type that's guaranteed to be 16 bits...
-#ifndef HAVE_U_INT16_T
-# if defined HAVE_UINT16_T
-    typedef uint16_t u_int16_t;    // true on solaris, possibly other C99 libc's
-# elif defined HAVE___UINT16
-    typedef __int16 int16_t;       // true on vc++7
-    typedef unsigned __int16 u_int16_t;
-# else
-    // Cannot find a 16-bit integer type.  Hoping for the best with "short"...
-    typedef short int int16_t;
-    typedef unsigned short int u_int16_t;
-# endif
-#endif
+//#ifndef HAVE_U_INT16_T
+//# if defined HAVE_UINT16_T
+//    typedef uint16_t u_int16_t;    // true on solaris, possibly other C99 libc's
+//# elif defined HAVE___UINT16
+//    typedef __int16 int16_t;       // true on vc++7
+//    typedef unsigned __int16 u_int16_t;
+//# else
+//    // Cannot find a 16-bit integer type.  Hoping for the best with "short"...
+//    typedef short int int16_t;
+//    typedef unsigned short int u_int16_t;
+//# endif
+//#endif
 
 _START_GOOGLE_NAMESPACE_
 
