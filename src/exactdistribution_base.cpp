@@ -4,7 +4,7 @@
 #include <Rmath.h>
 
 using namespace std;
-using google::dense_hash_map;
+using nopacoHASH::dense_hash_map;
 int         nStateElements;
 
 char *      pPrevKey;
@@ -184,7 +184,7 @@ double Probability(int iElement)
 //----------------------------------------------------------------
 
 
-google::dense_hash_map<const char *,std::map<long,double>,CHashFcn,CEqualKey> *    pPrevLevel;
-google::dense_hash_map<const char *,std::map<long,double>,CHashFcn,CEqualKey> *    pLevel;
+nopacoHASH::dense_hash_map<const char *,std::map<long,double>,CHashFcn,CEqualKey> *    pPrevLevel;
+nopacoHASH::dense_hash_map<const char *,std::map<long,double>,CHashFcn,CEqualKey> *    pLevel;
 
 

@@ -95,15 +95,15 @@
 #ifndef _SPARSEHASHTABLE_H_
 #define _SPARSEHASHTABLE_H_
 
-#include <sparsehash/internal/sparseconfig.h>
+#include "sparseconfig.h"
 #include <assert.h>
 #include <algorithm>                 // For swap(), eg
 #include <iterator>                  // for iterator tags
 #include <limits>                    // for numeric_limits
 #include <utility>                   // for pair
-#include <sparsehash/type_traits.h>        // for remove_const
-#include <sparsehash/internal/hashtable-common.h>
-#include <sparsehash/sparsetable>    // IWYU pragma: export
+#include "type_traits.h"        // for remove_const
+#include "hashtable-common.h"
+#include "sparsetable"    // IWYU pragma: export
 #include <stdexcept>                 // For length_error
 
 _START_GOOGLE_NAMESPACE_

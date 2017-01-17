@@ -7,7 +7,7 @@
 //----------------------------------------------------------------
 
 
-#include "sparsehash/dense_hash_map"
+#include "densehash/dense_hash_map"
 #include <stdint.h>
 #include <iostream>
 #include <map>
@@ -22,7 +22,7 @@
 
 //----------------------------------------------------------------
 using namespace std;
-using google::dense_hash_map;
+using nopacoHASH::dense_hash_map;
 //----------------------------------------------------------------
 
 map<long,double>::iterator            iPrevNode;

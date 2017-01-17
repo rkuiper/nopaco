@@ -57,7 +57,7 @@
 #ifndef BASE_TYPE_TRAITS_H_
 #define BASE_TYPE_TRAITS_H_
 
-#include "internal/sparseconfig.h"
+#include "sparseconfig.h"
 #include <utility>                  // For pair
 
 #include "template_util.h"    // For true_type and false_type

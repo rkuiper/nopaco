@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 #include <map>
-#include "sparsehash/dense_hash_map"
+#include "densehash/dense_hash_map"
 
 class CComp
 {
@@ -57,8 +57,8 @@ extern long Concordance(int iPivot);
 extern double Probability(int iElement);
 
 
-extern google::dense_hash_map<const char *,std::map<long,double>,CHashFcn,CEqualKey> *    pPrevLevel;
-extern google::dense_hash_map<const char *,std::map<long,double>,CHashFcn,CEqualKey> *    pLevel;
+extern nopacoHASH::dense_hash_map<const char *,std::map<long,double>,CHashFcn,CEqualKey> *    pPrevLevel;
+extern nopacoHASH::dense_hash_map<const char *,std::map<long,double>,CHashFcn,CEqualKey> *    pLevel;
 
 
 #endif  /*CONCORDANCE_H*/

@@ -318,7 +318,8 @@ void startMultithreadedSampling(double* pd_choleski,int* pi_missingmat1,int* pi_
 			}*/					
 		} //for windows
 		#else
-		while (pthread_tryjoin_np(pThreads[iThread],0)) {
+		//while (pthread_tryjoin_np(pThreads[iThread],0)) {
+		while (pthread_join(pThreads[iThread],0)) {
 			//nanosleep((const struct timespec[]){{0, 100000000}},(struct timespec[]){{0, 100000000}}); //bug:error: taking address of temporary array
 			//nanosleep((const struct timespec[]){{0, 100000000}},NULL); //Omit pedantic comound literal error
 

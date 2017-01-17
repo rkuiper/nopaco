@@ -49,7 +49,7 @@
 #ifndef BASE_TEMPLATE_UTIL_H_
 #define BASE_TEMPLATE_UTIL_H_
 
-#include "internal/sparseconfig.h"
+#include "sparseconfig.h"
 _START_GOOGLE_NAMESPACE_
 
 // Types small_ and big_ are guaranteed such that sizeof(small_) <
