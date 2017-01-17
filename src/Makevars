@@ -1,4 +1,1 @@
-#PKG_CXXFLAGS=-Wpedantic -Wall -Wextra
-#CXX=clang++
-#PKG_CXXFLAGS=-std=c++11 -std=gnu++11##2017
-#PKG_CXXFLAGS=-std=c++0x -std=gnu++0x
+CXX_STD = CXX11
