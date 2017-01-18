@@ -125,7 +125,7 @@ void Node(int iElement,map<long,double> * pPrevNode)
             {
                 iLeft=iNode; iLeft--;
 
-                if(fabs(iNode->first-iLeft->first)<EPSILON)
+                if(fabs((double)(iNode->first-iLeft->first))<EPSILON)
                 {
                     iLeft->second=LogSum(iLeft->second,iNode->second);
                     pNode->erase(iNode);
@@ -137,7 +137,7 @@ void Node(int iElement,map<long,double> * pPrevNode)
 
             if(iRight!=pNode->end())
             {
-                if(fabs(iNode->first-iRight->first)<EPSILON)
+                if(fabs((double)(iNode->first-iRight->first))<EPSILON)
                 {
                     iRight->second=LogSum(iRight->second,iNode->second);
                     pNode->erase(iNode);
@@ -293,6 +293,9 @@ SEXP exactDistr202(SEXP bn,SEXP skipTests, SEXP verbose)
         pLevel=&levels[1-(iLevel&1)];
     }
     
+	free(pStateLimits);
+    free(pState);
+
     //-------------------------------------------------------------------------
     //Normalize and create output
     //-------------------------------------------------------------------------

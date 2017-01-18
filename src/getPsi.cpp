@@ -52,7 +52,6 @@ struct PREDICATE_K_V_PAIR
 template <typename T>
 inline T  transpose (T mat, int const& nrow,int const& ncol) 
 { 
-
 	int n = nrow*ncol;	
 	int idx1=0,idx2 = 0;
 	int row=0,col=0;
@@ -66,7 +65,7 @@ inline T  transpose (T mat, int const& nrow,int const& ncol)
 	for (idx1 = 0; idx1 < n;idx1++){
 		mat[idx1] = placeholder[idx1];
 	}
-	delete [] placeholder;
+	free(placeholder);
 	return mat; 
 } 
 

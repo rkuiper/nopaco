@@ -1,4 +1,4 @@
-/* src/sparseconfig.h.  Generated from sparseconfig.h.in by configure.  */
+/* src/densehash/sparseconfig.h.  Generated from sparseconfig.h.in by configure.  */
 /* src/sparsehash/internal/sparseconfig.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Namespace for Google classes */

@@ -7,7 +7,7 @@ static const R_CallMethodDef callMethods[] = {
 {"getPsi202",  (DL_FUNC) &getPsi202, 1},
 {"exactDistr202",(DL_FUNC) &exactDistr202,3},
 {"samplePsi",(DL_FUNC) &samplePsi,5},
-NULL
+{NULL}
 };
 
 
