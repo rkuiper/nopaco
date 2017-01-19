@@ -53,7 +53,6 @@ coef(aTest)
 
 }
 \seealso{
-Other concordance.functions: \code{\link{coef}},
+Other concordance functions: \code{\link{coef}},
   \code{\link{getPsi}}, \code{\link{rfromPsi}}
 }
-

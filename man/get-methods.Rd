@@ -26,4 +26,3 @@ testResult <- concordance.test(matRandom)
 names(testResult)
 testResult$psi
 }
-

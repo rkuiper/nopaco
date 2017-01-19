@@ -10,6 +10,8 @@ AC_CONFIG_HEADERS(src/densehash/sparseconfig.h)
 
 AC_CONFIG_MACRO_DIRS([src/densehash/m4])
 
+AX_CXX_COMPILE_STDCXX([11],,[mandatory])
+
 # Check whether some low-level functions/files are available
 AC_HEADER_STDC
 AC_CHECK_FUNCS(memcpy memmove)

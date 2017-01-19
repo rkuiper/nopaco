@@ -28,7 +28,6 @@ coef(testResult)
 
 }
 \seealso{
-Other concordance.functions: \code{\link{concordance.test}},
+Other concordance functions: \code{\link{concordance.test}},
   \code{\link{getPsi}}, \code{\link{rfromPsi}}
 }
-

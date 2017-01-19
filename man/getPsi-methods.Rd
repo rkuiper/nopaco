@@ -4,9 +4,9 @@
 \name{getPsi}
 \alias{getPsi}
 \alias{getPsi,ConcordanceTest,missing-method}
+\alias{getPsi,matrix,missing-method}
 \alias{getPsi,matrix,NULL-method}
 \alias{getPsi,matrix,matrix-method}
-\alias{getPsi,matrix,missing-method}
 \title{Obtain concordance coefficients.}
 \usage{
 getPsi(x, y, ...)
@@ -34,13 +34,12 @@ A numeric vector with coefficient(s)
 }
 \examples{
 
-matRandom <- matrix(rnorm(3*20),20,3)
+matRandom <- matrix(rnorm(30),10,3)
 testResult <- concordance.test(matRandom)
 getPsi(testResult)
 getPsi(matRandom)
 }
 \seealso{
-Other concordance.functions: \code{\link{coef}},
+Other concordance functions: \code{\link{coef}},
   \code{\link{concordance.test}}, \code{\link{rfromPsi}}
 }
-

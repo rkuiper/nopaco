@@ -5,16 +5,16 @@
 #define GOOGLE_NAMESPACE ::nopacoHASH
 
 /* the location of the header defining hash functions */
-#define HASH_FUN_H <tr1/functional>
+#define HASH_FUN_H <functional>
 
 /* the location of <unordered_map> or <hash_map> */
-#define HASH_MAP_H <tr1/unordered_map>
+#define HASH_MAP_H <unordered_map>
 
 /* the namespace of the hash<> function */
-#define HASH_NAMESPACE std::tr1
+#define HASH_NAMESPACE std
 
 /* the location of <unordered_set> or <hash_set> */
-#define HASH_SET_H <tr1/unordered_set>
+#define HASH_SET_H <unordered_set>
 
 /* define if the compiler has hash_map */
 #define HAVE_HASH_MAP 1
