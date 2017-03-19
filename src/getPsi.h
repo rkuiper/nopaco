@@ -22,8 +22,8 @@ class DataClass
 		unsigned int seed;
 		unsigned int nrow, ncol;
 		double * sMAT;
-		unsigned long* rMAT;
-		unsigned long* qMAT;
+		double * rMAT;
+		double * qMAT;
 
 		unsigned int* BN;
 		unsigned long T;
@@ -32,7 +32,8 @@ class DataClass
 		void R2Q( void );
 		void S2R( void );
 		void orderPerSubject( void );
-		void BN_from_R( void );
+		//void BN_from_R( void );
+		void BN_from_S( void );
 		
 
  

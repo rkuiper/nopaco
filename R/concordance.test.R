@@ -53,7 +53,7 @@ setMethod("initialize",
             stop("alpha must be 0 < p < 1")
         }
         if (!is.numeric(dotList[["psi1"]]) | length(dotList[["psi1"]])!=1 ){
-            stop("psi1 must be a numeric value of length 1")
+            stop("psi1 must be a numeric value of length 1. Found psi1 = ",dotList[["psi1"]])
         }
         if (dotList[["psi1"]]<0 | dotList[["psi1"]]>1  ) {
             stop("psi1 must be 0<=psi1<=1")
@@ -343,8 +343,13 @@ function(x,y=NULL,alternative=NULL,alpha=0.05,...){
     ci.method <- method
     cl <- match.call()
     standardChecks <- .doStandardChecks(x=x,y=y,doCheck=TRUE)
+	numOfTies<-standardChecks$ties
     x <- standardChecks$x
     y <- standardChecks$y
+
+	if ( (numOfTies/sum(is.finite(x)))>0.05) {
+		warning("Large proportion of tied values may affect test outcome.");
+	}
     obs<-getPsi(x=x,y=y,doCheck=FALSE)
     psi1<-obs[1]
     psi2<-obs[2]
@@ -358,7 +363,7 @@ function(x,y=NULL,alternative=NULL,alpha=0.05,...){
         for (i in seq_along(bn)){
             R[i,-c(0:bn[i])]<-NA
         }
-        Q[]<-rank(R,ties.method='random')
+        Q[]<-rank(R)#,ties.method='random')
         Q[is.na(R)]<-NA
         getPsi(Q)
     }
@@ -380,7 +385,7 @@ function(x,y=NULL,alternative=NULL,alpha=0.05,...){
             },silent=TRUE)
             if (!inherits(exactDist,"try-error")){
                
-                p<-sum(exactDist[ ((exactDist[,1])>=obs),2])
+                p<-max(0,min(1,sum(exactDist[ ((exactDist[,1])>=obs),2])))
                    ci.upper<-max(exactDist[,1])
        
             }
@@ -435,7 +440,7 @@ function(x,y=NULL,alternative=NULL,alpha=0.05,...){
         if (calcCI){
             if (is.na(ci.lower)|is.na(ci.upper)){
 			    rmat1<-x
-                rmat1[]<-rank(x,ties.method='random')
+                rmat1[]<-rank(x)#,ties.method='random')
                 rmat1[!is.finite(x)]<-NA
                 am<-getAgreeMat(rmat1) 
                 cormat<-am$mat
@@ -446,8 +451,7 @@ function(x,y=NULL,alternative=NULL,alpha=0.05,...){
                 SigmaEV <- eigen(cormat)
                 mychol<-t(SigmaEV$vectors %*% diag(sqrt(SigmaEV$values)))
                 bs<-.sampleVariance(mychol,x)
-               
-				ci.method<-"simulation"
+               	ci.method<-"simulation"
                 if (is.na(ci.lower)) ci.lower<-quantile(bs,alpha)
                 if (is.na(ci.upper)) ci.upper<-1
             }
@@ -464,7 +468,7 @@ function(x,y=NULL,alternative=NULL,alpha=0.05,...){
         rmat2[!is.finite(y)]<-NA
         mergemat<-cbind(rmat1,rmat2)
         nmat<-matrix(NA,ncol(mergemat),ncol(mergemat))
-        mergemat[]<-rank(mergemat,ties.method='random')
+        mergemat[]<-rank(mergemat)#,ties.method='random')
         mergemat[!is.finite(cbind(rmat1,rmat2))]<-NA
         am<-getAgreeMat(mergemat) 
         cormat<-am$mat

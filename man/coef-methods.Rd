@@ -26,6 +26,9 @@ testResult <- concordance.test(matRandom)
 getPsi(testResult)
 coef(testResult)
 
+
+
+
 }
 \seealso{
 Other concordance functions: \code{\link{concordance.test}},

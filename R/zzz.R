@@ -69,7 +69,13 @@ getVar<-function(mat,...){
     if (!is.null(missingy)){
         missingy<-is.finite(missingy)
     }
-	oldseed <- .Random.seed
+
+	if (exists(".Random.seed", .GlobalEnv)) { 
+        oldseed <- .GlobalEnv$.Random.seed
+    } else {
+        oldseed <- NULL
+    }
+
 	set.seed( as.integer(options("concordance.seed")$concordance.seed) )
     psi<-.Call(
         "samplePsi",
@@ -79,7 +85,14 @@ getVar<-function(mat,...){
         as.integer(options("concordance.nDraws")$concordance.nDraws),
         as.integer(options("concordance.nCPU")$concordance.nCPU)
     )
-	.Random.seed <- oldseed
+
+
+	if (!is.null(oldseed)) {
+        .GlobalEnv$.Random.seed <- oldseed
+    } else {
+        rm(".Random.seed", envir = .GlobalEnv)
+    }
+
     if (is.null(missingy)){
         return(psi[,1,drop=FALSE])
     }
@@ -174,6 +187,7 @@ psifromR<-function(r){
     
     ##Excludes observations with less than two replicates in either x or y
     #Sets any non-finite values (e.g. NA's) explicitly to infinite which is used in external C code.
+	numOfTies<-0;
     if (doCheck == TRUE) {
         if(is.data.frame(x)){
             if (!all(unlist(lapply(x,class))=="numeric")) stop("x contains non numeric values")
@@ -193,8 +207,9 @@ psifromR<-function(r){
         x[!is.finite(x)]<-NA
         ##Check for ties
         t1<-table(rank(x)) ##First rank, otherwise number close to machine precision will be seen as ties
-        t1.s<-sum(t1[which(t1>1)])
-        if (t1.s>0) {warning("Found ",t1.s," ties in x")}
+        numOfTies<-sum(t1[which(t1>1)])
+		
+
         #Check y compatability with x 
         if (!is.null(y) ){
             y[!is.finite(y)]<-NA
@@ -248,7 +263,7 @@ psifromR<-function(r){
     }
     x[!is.finite(x)]<-Inf
     if (!is.null(y)) y[!is.finite(y)]<-Inf
-    return(list(x=x,y=y))
+    return(list(x=x,y=y,ties=numOfTies))
 }
 
 getOmega<-function(bn){

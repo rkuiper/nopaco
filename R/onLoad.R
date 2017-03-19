@@ -8,5 +8,5 @@
     library.dynam.unload("nopaco",pkgname,libname)
 }
 
-#' @useDynLib nopaco
+#' @useDynLib nopaco, .registration = TRUE 
 NULL
