@@ -275,9 +275,11 @@ getAgreeMat<-function(mat){
     n<-matrix(1,ncol=ncol(mat),nrow=ncol(mat))
     for (i in c(1:(ncol(mat)-1))){
     for (j in c((i+1):(ncol(mat)))){
+		#cat("i=",i," j=",j,"\n");
         n[i,j]<-n[j,i]<-sum(rowSums(is.finite(mat[,c(i,j)]))==2)
         if (n[i,j]>1){
-            am[i,j]<-am[j,i]<-getPsi(mat[rowSums(is.finite(mat[,c(i,j)]))==2,c(i,j)])
+			tmpMat<-mat[rowSums(is.finite(mat[,c(i,j)]))==2,c(i,j)]
+            am[i,j]<-am[j,i]<-getPsi(tmpMat)
         }
     }}
     diag(am)<-1

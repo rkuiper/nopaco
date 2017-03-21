@@ -1,0 +1,11 @@
+ bibentry(bibtype = "Manual",
+     title = "nopaco: a Non-Parametric Concordance Coefficient",
+     author = c(
+       person("Rowan", "Kuiper", role = "aut"),
+       person("Remco","Hoogenboezem", role = c("aut"))
+	 ),
+     year = "2017",
+     note = "version 0.99.10",
+     url = "https://CRAN.R-project.org/package=nopaco",
+     key = "nopaco-package"
+   )

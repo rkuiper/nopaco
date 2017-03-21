@@ -178,7 +178,8 @@ void DataClass::S2R(){
 	double l =0.0;
 
 	lKEY_dVALUE_PAIR* pKVP = (lKEY_dVALUE_PAIR*)malloc(sizeof(lKEY_dVALUE_PAIR) * (this->ncol* this->nrow)); //a vector (for each element in the matrix) of key value pairs of doubles 
-
+	//cout << "Alloc: " << this->ncol* this->nrow <<"\t";
+	
 	//First sort all values in the whole matrix	to obtain rank values		
 	for (j = 0; j < this->ncol; j++){
 		for (i = 0; i < this->nrow; i++){
@@ -238,7 +239,10 @@ void DataClass::S2R(){
 				//And determine the begin and end of each subject.
 				curSubj = (long) (pKVP[j].lPosition / this->nrow);
 				from2 = j;	
-				while ( (j<=to) & (curSubj == ((long) (pKVP[j].lPosition / this->nrow)))){j++;}
+				while ( j<=to ) {
+					if (curSubj == ((long) (pKVP[j].lPosition / this->nrow))){ j++;}
+					else {break;}
+				}
 				to2 = j;
 
 				//Based on the number inside and ouside the subject, calculate and set the expected ranking

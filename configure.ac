@@ -8,9 +8,9 @@ AC_INIT(nopaco, 0.99.5, R.Kuiper)
 
 AC_CONFIG_HEADERS(src/densehash/sparseconfig.h)
 
-AC_CONFIG_MACRO_DIRS([src/densehash/m4])
+AC_CONFIG_MACRO_DIRS([tools/m4])
 
-AX_CXX_COMPILE_STDCXX([11],,[mandatory])
+#AX_CXX_COMPILE_STDCXX([11],,[mandatory])
 
 # Check whether some low-level functions/files are available
 AC_HEADER_STDC

@@ -468,9 +468,9 @@ function(x,y=NULL,alternative=NULL,alpha=0.05,...){
         rmat2[!is.finite(y)]<-NA
         mergemat<-cbind(rmat1,rmat2)
         nmat<-matrix(NA,ncol(mergemat),ncol(mergemat))
-        mergemat[]<-rank(mergemat)#,ties.method='random')
+        mergemat[]<-rank(mergemat) 
         mergemat[!is.finite(cbind(rmat1,rmat2))]<-NA
-        am<-getAgreeMat(mergemat) 
+		am<-getAgreeMat(mergemat)  
         cormat<-am$mat
         cormat[]<-rfromPsi(am$mat)
         
@@ -485,7 +485,8 @@ function(x,y=NULL,alternative=NULL,alpha=0.05,...){
         if (!all(eigen(cormatH0)$value>0)){ cormatH0<-as.matrix(nearPD(cormatH0,keepDiag=TRUE,maxit=10000)$mat)}
         SigmaEV <- eigen(cormatH0)
         mychol<-t(SigmaEV$vectors %*% diag(sqrt(SigmaEV$values)))
-        j<-.sampleVariance(mychol,x,y)
+        
+		j<-.sampleVariance(mychol,x,y)
         delta<-diff(sort(obs))
         meanN<-mean(am$n)
         obsvar<-var(j[,1]-j[,2])
