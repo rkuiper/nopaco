@@ -113,8 +113,7 @@ exactProb<-function(bn, ...){
     res<-.Call(
         'exactDistr202',
         bn,
-        as.logical(skipTests),
-        as.logical(options("concordance.verbose")$concordance.verbose))
+        as.logical(skipTests))
     
     return(res)
 }

@@ -1,3 +1,11 @@
+//----------------------------------------------------------------
+// Name        : samplePsi.cpp
+// Author      : Rowan Kuiper
+// Version     : 1.0.1
+// Copyright   :
+// Description : concordance
+//----------------------------------------------------------------
+
 /*Determine non-parametric (ranked) correlation
 Generate random correlated matrices and determine their psi
 */
@@ -8,7 +16,7 @@ Generate random correlated matrices and determine their psi
 	#include <windows.h>
 #else
 	#include <pthread.h>
-#endif 
+#endif
 #include <deque>
 #include <vector>
 
@@ -19,10 +27,14 @@ Generate random correlated matrices and determine their psi
 
 #include <algorithm>    // std::min_element, std::max_element
 #include <Rmath.h> //R's rng's
+
+//----------------------------------------------------------------
 using namespace std;
+//----------------------------------------------------------------
 
 
 void * ThreadFunc(void * pUserData);
+//----------------------------------------------------------------
 
 void getMatrix(double* mat,int b,int n){
 	GetRNGstate();
@@ -31,24 +43,23 @@ void getMatrix(double* mat,int b,int n){
 	}
 	PutRNGstate();
 }
+//----------------------------------------------------------------
 
 void matmultiply(double* mat1,double* mat2,double* outputmat,int b,int n){
 	//mat1 is assumed to be a nxb matrix
 	//mat2 is assumed to be a square bxb matrix
-	//outputmat is assumed to be a nxb matrix to 
+	//outputmat is assumed to be a nxb matrix to
 	int rowIdx1=0,colIdx2=0,z=0;
 	for (rowIdx1 = 0; rowIdx1 < n; rowIdx1++){
 	for (colIdx2 = 0; colIdx2 < b; colIdx2++){
-		outputmat[rowIdx1+colIdx2*n] = 0;	
+		outputmat[rowIdx1+colIdx2*n] = 0;
 	for (z = 0; z < b; z++){
 		outputmat[rowIdx1+colIdx2*n] += mat1[z*n+rowIdx1]*mat2[z+colIdx2*b]	;
 	}
-				 	
+
 	}}
 }
-
-
-
+//----------------------------------------------------------------
 
 //----------------------------------------------------------------
 //Job class
@@ -57,13 +68,13 @@ void matmultiply(double* mat1,double* mat2,double* outputmat,int b,int n){
 class CJob
 {
     private:
-	
+
     public:
 		//Whatever you need inside the worker thread for this job
 		unsigned int id;
 		unsigned int nDraws;
 		unsigned int offset;
-		
+
 		CJob(){}
 
 };
@@ -90,21 +101,21 @@ class CJobs
 		int counter;
 
 
-	
+
 		#if defined _WIN64 || defined _WIN32
 			CRITICAL_SECTION criticalSection; //for windows
 		#else
 	        pthread_mutex_t mutex;
-		#endif 
+		#endif
 
         deque<CJob>     queue;
-        
+
 		//Whatever you need inside the worker threads for all jobs
 
 		CJobs (double*& pd_choleski, int*& pi_missingmat1, int*& pi_missingmat2, unsigned int& nDraws,int& maxB1,int& maxB2, int& n1,int& n2,  double* pd_result1, double* pd_result2)
 		{
 			#if defined _WIN64 || defined _WIN32
-				InitializeCriticalSection(&criticalSection); //for windows 
+				InitializeCriticalSection(&criticalSection); //for windows
 			#else
 	            pthread_mutex_init(&mutex,NULL);
 			#endif
@@ -122,20 +133,16 @@ class CJobs
 			this->counter =0;
 			this->maxn = max(n1,n2);
         }
-        
+
         ~CJobs(void)
         {
 			#if defined _WIN64 || defined _WIN32
-				DeleteCriticalSection(&criticalSection); //for windows            
+				DeleteCriticalSection(&criticalSection); //for windows
 			#else
 				pthread_mutex_destroy(&mutex);
 			#endif
         }
 };
-
-
-
-
 
 //----------------------------------------------------------------
 //Worker thread
@@ -147,19 +154,21 @@ long unsigned int WINAPI ThreadFuncWin(void * pUserData)
 {
 	ThreadFunc(pUserData);
 	return 0;
-} 
+}
 #endif
-void * ThreadFunc(void * pUserData) 
+//----------------------------------------------------------------
+
+void * ThreadFunc(void * pUserData)
 {
 	CJob  job;
-    CJobs * pJobs;	
+    CJobs * pJobs;
 
 	pJobs=(CJobs*)pUserData;
- 
-	double *dataMatrix1 = (double*)malloc(sizeof(double) * (pJobs->maxB1+pJobs->maxB2)*pJobs->maxn);	
+
+	double *dataMatrix1 = (double*)malloc(sizeof(double) * (pJobs->maxB1+pJobs->maxB2)*pJobs->maxn);
 	double *dataMatrix2 = (double*)malloc(sizeof(double) * (pJobs->maxB1+pJobs->maxB2)*pJobs->maxn);
 
-	double *dataMatrix3 = (double*)malloc(sizeof(double) * pJobs->maxB1*pJobs->n1);	
+	double *dataMatrix3 = (double*)malloc(sizeof(double) * pJobs->maxB1*pJobs->n1);
 	double *dataMatrix4 = (double*)malloc(sizeof(double) * pJobs->maxB2*pJobs->n2);
 
 
@@ -168,17 +177,17 @@ void * ThreadFunc(void * pUserData)
         //----------------------------------------------------------------
         //Get job from queue
         //----------------------------------------------------------------
-    
+
 		#if defined _WIN64 || defined _WIN32
 			EnterCriticalSection(&pJobs->criticalSection);    //for windows
 		#else
 		    pthread_mutex_lock(&pJobs->mutex);
-		#endif	
+		#endif
         if(pJobs->queue.size()==0)
         {
-			
+
 			#if defined _WIN64 || defined _WIN32
-				LeaveCriticalSection(&pJobs->criticalSection);    //for windows		
+				LeaveCriticalSection(&pJobs->criticalSection);    //for windows
 			#else
 	            pthread_mutex_unlock(&pJobs->mutex);
 			#endif
@@ -186,32 +195,32 @@ void * ThreadFunc(void * pUserData)
 			free(dataMatrix2);
 			free(dataMatrix3);
 			free(dataMatrix4);
- 
+
 			return (void*)pJobs;
         }
-        
+
         job=pJobs->queue.front();
         pJobs->queue.pop_front();
-	
+
 		#if defined _WIN64 || defined _WIN32
 			LeaveCriticalSection(&pJobs->criticalSection);    //for windows
 		#else
 	        pthread_mutex_unlock(&pJobs->mutex);
 		#endif
 
-		
+
         //----------------------------------------------------------------
 		//Do work on job
         //----------------------------------------------------------------
-		unsigned int cycle;		
+		unsigned int cycle;
 		for (cycle = 0; cycle< job.nDraws; cycle++){
 			//if (bSigintReceived) { break;}
-			 	
+
 			#if defined _WIN64 || defined _WIN32
 			EnterCriticalSection(&pJobs->criticalSection);    //for windows
 			#else
 				pthread_mutex_lock(&pJobs->mutex);
-			#endif	
+			#endif
 			getMatrix(dataMatrix2,pJobs->maxB1+pJobs->maxB2,pJobs->maxn);
 			#if defined _WIN64 || defined _WIN32
 				LeaveCriticalSection(&pJobs->criticalSection);    //for windows
@@ -241,11 +250,11 @@ void * ThreadFunc(void * pUserData)
 					}
 				}
 			}
-		
+
 			pJobs->pd_result1[job.offset +cycle]  = getPsi(dataMatrix3, pJobs->n1, pJobs->maxB1);
 			pJobs->pd_result2[job.offset +cycle]  = getPsi(dataMatrix4, pJobs->n2, pJobs->maxB2);
-			
-			
+
+
 			#if defined _WIN64 || defined _WIN32
 				EnterCriticalSection(&pJobs->criticalSection);    //for windows
 			#else
@@ -257,24 +266,25 @@ void * ThreadFunc(void * pUserData)
 			#else
 			    pthread_mutex_unlock(&pJobs->mutex);
 			#endif
-			
+
 		}
 
 	}
 }
+//----------------------------------------------------------------
 
 
 void startMultithreadedSampling(double* pd_choleski,int* pi_missingmat1,int* pi_missingmat2,unsigned int nDraws,int maxB1,int maxB2, int n1, int n2,unsigned int nCPU,double* pd_result1, double* pd_result2) {
-	
+
 	unsigned long i;
 	unsigned int iThread;
-	
-	CJobs jobs(pd_choleski, pi_missingmat1, pi_missingmat2, nDraws ,maxB1,maxB2, n1,n2, pd_result1, pd_result2);	
+
+	CJobs jobs(pd_choleski, pi_missingmat1, pi_missingmat2, nDraws ,maxB1,maxB2, n1,n2, pd_result1, pd_result2);
 	#if defined _WIN64 || defined _WIN32
 		HANDLE *	pThreads;
 		pThreads=(HANDLE*)malloc(nCPU*sizeof(HANDLE));
 	#else
-		pthread_t *     pThreads;   
+		pthread_t *     pThreads;
 		pThreads=(pthread_t*)malloc(nCPU*sizeof(pthread_t));
 
 	#endif
@@ -300,7 +310,7 @@ void startMultithreadedSampling(double* pd_choleski,int* pi_missingmat1,int* pi_
 	{
 		#if defined _WIN64 || defined _WIN32
 			pThreads[iThread]=CreateThread(NULL,0, ThreadFuncWin,(void*)&jobs,0, NULL); //for windows
-		#else 
+		#else
 			pthread_create(&pThreads[iThread],NULL, ThreadFunc, (void*)&jobs);
 		#endif
 	}
@@ -310,60 +320,28 @@ void startMultithreadedSampling(double* pd_choleski,int* pi_missingmat1,int* pi_
 	for(iThread=0;iThread<(nCPU);iThread++)
 	{
 		#if defined _WIN64 || defined _WIN32
-		while(WaitForMultipleObjects(nCPU,pThreads,TRUE,100)){	
-			/*if (this->verbose){			
-				Rprintf("\rEstimating variance: %.1f %%        ",(100.0*jobs.counter)/(*pncycles));
-				R_FlushConsole();
-				R_ProcessEvents();
-			}*/					
+		while(WaitForMultipleObjects(nCPU,pThreads,TRUE,100)){
 		} //for windows
 		#else
-		//while (pthread_tryjoin_np(pThreads[iThread],0)) {
 		while (pthread_join(pThreads[iThread],0)) {
-			//nanosleep((const struct timespec[]){{0, 100000000}},(struct timespec[]){{0, 100000000}}); //bug:error: taking address of temporary array
-			//nanosleep((const struct timespec[]){{0, 100000000}},NULL); //Omit pedantic comound literal error
 
 			timespec sleepValue = {0};
-			const long INTERVAL_MS = 100000000;	
+			const long INTERVAL_MS = 100000000;
 			sleepValue.tv_nsec = INTERVAL_MS;
 			nanosleep(&sleepValue, NULL);
 
-			/*if (this->verbose){
-				Rprintf("\rEstimating variance: %.1f \%           ",(100.0*jobs.counter)/(*pncycles));
-				R_FlushConsole();
-				R_ProcessEvents();
-			}*/
 		}
 		#endif
 
 	}
 
-	
-	/*if (this->verbose and !bSigintReceived){
-		Rprintf("\rEstimating variance: %.1f %%   \n",100.0);
-		R_FlushConsole();
-		R_ProcessEvents();
-	}*/
-
 	free(job);
 	free(pThreads);
 }
+//----------------------------------------------------------------
 
 extern "C" {
-	/*
-	SEXP test(SEXP mat){
-		SEXP Rdim1;
-		PROTECT(Rdim1=getAttrib(mat,R_DimSymbol));
-		int n=INTEGER(Rdim1)[0];
-		int b=INTEGER(Rdim1)[1];
-
-		getMatrix(REAL(mat),b,n);	
-
-		UNPROTECT(1);
-		return(mat);
-	}*/
-
-	SEXP samplePsi(SEXP rP_choleski,SEXP rP_mat1Missing,SEXP rP_mat2Missing,SEXP rP_nDraws,SEXP rP_nCPU){
+    SEXP samplePsi(SEXP rP_choleski,SEXP rP_mat1Missing,SEXP rP_mat2Missing,SEXP rP_nDraws,SEXP rP_nCPU){
 		//rP_choleski: A Cholseki matrix of bmax*bmax
 		//rP_bn: A vector of numbers of observations per subject
 		//rP_nDraws: An integer for the number of matrices to draw
@@ -383,11 +361,11 @@ extern "C" {
 		if (rP_mat1Missing==R_NilValue){error("No missing matrix given");}
 		if (Rdim2==R_NilValue){error("No missing matrix given");}
 		if (rP_mat2Missing!=R_NilValue and Rdim3==R_NilValue){error("missing matrix 2 is given but not a matrix");}
-		
+
 		int n1 = INTEGER(Rdim2)[0];
 		int n2 = 0;
 		if (rP_mat2Missing!=R_NilValue){n2 = INTEGER(Rdim3)[0];}
-	
+
 
 		int maxB1 = INTEGER(Rdim2)[1];//*std::max_element( INTEGER(rP_bn1),INTEGER(rP_bn1)+n  );
 		int maxB2 = 0;
@@ -395,23 +373,21 @@ extern "C" {
 		int maxB = maxB1+maxB2;
 		if (I!=J) {error("Input matrix must be a square matrix");}
 		if (I != maxB) {error("Choleski matrix dimensions must satisfy bmax*bmax");}
-		
+
 		int nCPU = *INTEGER(rP_nCPU);
-		
+
 		SEXP output1;
 		PROTECT(output1 = allocMatrix(REALSXP, *INTEGER(rP_nDraws),2));
 
 		if (n2>0){
-			startMultithreadedSampling(REAL(rP_choleski),LOGICAL(rP_mat1Missing),LOGICAL(rP_mat2Missing),*INTEGER(rP_nDraws),maxB1,maxB2, n1, n2, nCPU, REAL(output1),REAL(output1)+*INTEGER(rP_nDraws)); 
+			startMultithreadedSampling(REAL(rP_choleski),LOGICAL(rP_mat1Missing),LOGICAL(rP_mat2Missing),*INTEGER(rP_nDraws),maxB1,maxB2, n1, n2, nCPU, REAL(output1),REAL(output1)+*INTEGER(rP_nDraws));
 		} else {
-			startMultithreadedSampling(REAL(rP_choleski),LOGICAL(rP_mat1Missing),NULL,*INTEGER(rP_nDraws),maxB1,maxB2, n1, n2, nCPU, REAL(output1),REAL(output1)+*INTEGER(rP_nDraws)); 
+			startMultithreadedSampling(REAL(rP_choleski),LOGICAL(rP_mat1Missing),NULL,*INTEGER(rP_nDraws),maxB1,maxB2, n1, n2, nCPU, REAL(output1),REAL(output1)+*INTEGER(rP_nDraws));
 		}
-		
+
 		UNPROTECT(4);
 		return output1;
 	}
 
 }
-
-
-
+//----------------------------------------------------------------

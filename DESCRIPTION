@@ -1,16 +1,15 @@
 Package: nopaco
 Type: Package
 Title: Non-Parametric Concordance Coefficient: A Non-Parametric Concordance Test
-Version: 0.99.10
-Date: 2017-03-20
+Version: 1.0.1
+Date: 2017-03-24
 Authors@R: c(
     person("Rowan","Kuiper",email="r.kuiper.emc@gmail.com",role=c("cre","aut")),
     person("Remco","Hoogenboezem",role=c("aut")),
 	person("Sjoerd","Huisman",role=c("ctb")),
         person("Pieter","Sonneveld",role=c("ths")),
-        person("Mark","van Duin",role=c("ths")),
-    person("google-sparsehash@googlegroups.com", role=c("aut", "cph"),comment="Copyright by Google Inc. as mentioned in inst/COPYRIGHTS, applies to all the files in the src/densehash directory"))
-Copyright: inst/COPYRIGHTS
+        person("Mark","van Duin",role=c("ths"))
+    )
 Description: A non-parametric test for multi-observer concordance and
     differences between concordances in (un)balanced data.
 License: GPL (>= 3)
