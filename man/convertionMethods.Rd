@@ -29,11 +29,11 @@ The convertion is performed following the relationship described by Rothery (197
 
 #Generate a matrix without concordance
 matRandom <- matrix(rnorm(30),10,3)
-result<-concordance.test(matRandom) 
+result<-concordance.test(matRandom)
 getPsi(result) #concordance coefficient
 result$ci      #95\% confidence interval
 
-#Corresonding Pearson correlation 
+#Corresonding Pearson correlation
 rfromPsi(getPsi(result))
 rfromPsi(result$ci)
 

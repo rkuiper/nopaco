@@ -6,10 +6,7 @@
 // Description : concordance
 //----------------------------------------------------------------
 
-#define EPSILON 1.0e-10
-#define SEED    437401448   //Some random number that Matlab gave me
-//----------------------------------------------------------------
-
+#include <iostream> //##DEGBUG  ONLY!
 #include "exactdistribution.h"
 
 #include <map>
@@ -20,6 +17,8 @@
 #include <R.h>
 #include <Rmath.h>
 #include <Rinternals.h>
+
+
 
 //----------------------------------------------------------------
 using namespace std;
@@ -107,12 +106,12 @@ const string Key202(void)
 }
 
 //----------------------------------------------------------------
-void Node(int iElement,map<long,double> * pPrevNode,unordered_map< string, map<long,double> >* pLevel)
+void Node(int iElement,map<long,double> * pPrevNode,unordered_map< string, map<long,double> >* pCurLevel)
 {
     //Creates a new node from the prevNode by incrementing element iElement
     double              dProbability;
     long                dConcordance;
-    map<long,double> *  pNode;
+    map<long,double> *  pCurNode;
 
     dProbability=Probability(iElement);
 
@@ -122,61 +121,66 @@ void Node(int iElement,map<long,double> * pPrevNode,unordered_map< string, map<l
 
 
     const string pKeystr=Key202();//Obtain the key for the current pBperSubject state
-    if((*pLevel).count(pKeystr)==0) //If first encounter of this key
+    if((*pCurLevel).count(pKeystr)==0) //If first encounter of this key
     {
-        pNode=&(*pLevel)[pKeystr];
+        pCurNode=&(*pCurLevel)[pKeystr];
 
         for(iPrevNode=pPrevNode->begin();iPrevNode!=pPrevNode->end();iPrevNode++)
         {
-            (*pNode)[iPrevNode->first+dConcordance]=iPrevNode->second+dProbability;
+            (*pCurNode)[iPrevNode->first+dConcordance]=iPrevNode->second+dProbability;
         }
     }
 
     else //If key already seen
     {
-        pNode=&(*pLevel)[pKeystr]; //R! free(pKey);
+        pCurNode=&(*pCurLevel)[pKeystr];
 
         for(iPrevNode=pPrevNode->begin();iPrevNode!=pPrevNode->end();iPrevNode++)
         {
-            pResult=pNode->insert(pair<long,double>(iPrevNode->first+dConcordance,iPrevNode->second+dProbability));
+            pResult=pCurNode->insert(pair<long,double>(iPrevNode->first+dConcordance,iPrevNode->second+dProbability));
             iNode=pResult.first;
 
-            if(pResult.second==false)
+            if(pResult.second==false) //if map with that concordance was already included for this key
             {
                 iNode->second=LogSum(iNode->second,iPrevNode->second+dProbability);
                 continue;
             }
+        }
+    }
+    pBperSubject[iElement]--;
 
-            if(iNode!=pNode->begin())
+}
+
+//----------------------------------------------------------------
+void processLevel(unordered_map< string ,map<long,double> >::iterator prevLevel_it, unordered_map< string ,map<long,double> >::iterator prevLevel_to, unordered_map< string, map<long,double> >* curLevel){
+	int iElement;
+	for(prevLevel_it; prevLevel_it != prevLevel_to; prevLevel_it++)
+    {
+        State(prevLevel_it->first); //Set the state to the one observed in the given prev node
+
+        if(pBperSubject[0]<pMaxBperSubject[0])
+        {
+            Node(0,&prevLevel_it->second,curLevel);
+        }
+
+        for(iElement=1;iElement<nSubjects;iElement++)
+        {
+            if(pMaxBperSubject[iElement-1]==pMaxBperSubject[iElement])
             {
-                iLeft=iNode; iLeft--;
-
-                if(fabs((double)(iNode->first-iLeft->first))<EPSILON)
+                if(pBperSubject[iElement-1]>pBperSubject[iElement])
                 {
-                    iLeft->second=LogSum(iLeft->second,iNode->second);
-                    pNode->erase(iNode);
-                    continue;
+                    Node(iElement,&prevLevel_it->second,curLevel);
                 }
-            }
-
-            iRight=pResult.first; iRight++;
-
-            if(iRight!=pNode->end())
-            {
-                if(fabs((double)(iNode->first-iRight->first))<EPSILON)
+            } else {
+                if(pBperSubject[iElement]<pMaxBperSubject[iElement])
                 {
-                    iRight->second=LogSum(iRight->second,iNode->second);
-                    pNode->erase(iNode);
-                    continue;
+                    Node(iElement,&prevLevel_it->second,curLevel);
                 }
             }
         }
     }
-
-
-    pBperSubject[iElement]--;
-
 }
+
 //----------------------------------------------------------------
 extern "C"{
 SEXP exactDistr202(SEXP bn,SEXP skipTests)
@@ -195,7 +199,7 @@ SEXP exactDistr202(SEXP bn,SEXP skipTests)
     SEXP        plhs;
 
     unordered_map< string ,map<long,double> >              levels[2];
-    unordered_map< string, map<long,double> > *            pLevel;
+    unordered_map< string, map<long,double> > *            pCurLevel;
     unordered_map< string ,map<long,double> > *            pPrevLevel;
     unordered_map< string ,map<long,double> >::iterator    iPrevLevel;
 
@@ -231,7 +235,7 @@ SEXP exactDistr202(SEXP bn,SEXP skipTests)
 
 	if (nGreaterThan15>0 || nBetween1and15==0 || nSmallerThan1>0)
 	{
-	    error("Number of replicates in all subject cannot exceed 7. In addition there must be at least one subject that has >1 replicates.")  ;
+	    error("Number of replicates in all subject cannot exceed 15. In addition there must be at least one subject that has >1 replicates.")  ;
 	}
 
 	if (LOGICAL(skipTests)[0]==false){
@@ -257,41 +261,16 @@ SEXP exactDistr202(SEXP bn,SEXP skipTests)
     levels[0][Key202()][0]=0.0; //initialize the first node
 
     pPrevLevel=&levels[0];
-    pLevel=&levels[1];
+    pCurLevel=&levels[1];
 
     for(iLevel=1;iLevel<=iMaxLevel;iLevel++)
     {
         R_CheckUserInterrupt();
-        for(iPrevLevel=pPrevLevel->begin();iPrevLevel!=pPrevLevel->end();iPrevLevel++)
-        {
-            State(iPrevLevel->first); //Set the state to the one observed in the given prev node
-
-            if(pBperSubject[0]<pMaxBperSubject[0])
-            {
-                Node(0,&iPrevLevel->second,pLevel);
-            }
-
-            for(iElement=1;iElement<nSubjects;iElement++)
-            {
-                if(pMaxBperSubject[iElement-1]==pMaxBperSubject[iElement])
-                {
-                    if(pBperSubject[iElement-1]>pBperSubject[iElement])
-                    {
-                        Node(iElement,&iPrevLevel->second,pLevel);
-                    }
-                } else {
-                    if(pBperSubject[iElement]<pMaxBperSubject[iElement])
-                    {
-                        Node(iElement,&iPrevLevel->second,pLevel);
-                    }
-                }
-            }
-        }
+		processLevel(pPrevLevel->begin(), pPrevLevel->end(), pCurLevel);
 
         pPrevLevel->clear();
-
         pPrevLevel=&levels[iLevel&1];
-        pLevel=&levels[1-(iLevel&1)];
+        pCurLevel=&levels[1-(iLevel&1)];
     }
 
 	free(pMaxBperSubject);

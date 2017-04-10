@@ -282,6 +282,8 @@ setMethod("coef",
 #'
 #' @family concordance functions
 #'
+#' @references P.Rothery (1979) Biometrika 66(3):629-639
+#'
 #' @docType methods
 #' @rdname concordance.test
 #'

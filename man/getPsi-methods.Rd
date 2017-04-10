@@ -5,6 +5,8 @@
 \alias{getPsi}
 \alias{getPsi,ConcordanceTest,missing-method}
 \alias{getPsi,matrix,missing-method}
+\alias{getPsi,data.frame,missing-method}
+\alias{getPsi,data.frame,data.frame-method}
 \alias{getPsi,matrix,NULL-method}
 \alias{getPsi,matrix,matrix-method}
 \title{Obtain concordance coefficients.}
@@ -14,6 +16,10 @@ getPsi(x, y, ...)
 \S4method{getPsi}{ConcordanceTest,missing}(x)
 
 \S4method{getPsi}{matrix,missing}(x, y, ...)
+
+\S4method{getPsi}{data.frame,missing}(x, y, ...)
+
+\S4method{getPsi}{data.frame,data.frame}(x, y, ...)
 
 \S4method{getPsi}{matrix,`NULL`}(x, y, ...)
 
@@ -38,6 +44,9 @@ matRandom <- matrix(rnorm(30),10,3)
 testResult <- concordance.test(matRandom)
 getPsi(testResult)
 getPsi(matRandom)
+}
+\references{
+P.Rothery (1979) Biometrika 66(3):629-639
 }
 \seealso{
 Other concordance functions: \code{\link{coef}},

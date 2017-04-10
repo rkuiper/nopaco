@@ -10,12 +10,12 @@
 Generate random correlated matrices and determine their psi
 */
 
-# define M_PIl          3.141592653589793238462643383279502884L /* pi */
-
 #if defined _WIN64 || defined _WIN32
 	#include <windows.h>
 #else
 	#include <pthread.h>
+	#include <unistd.h>
+	#define Sleep(x) usleep((x)*1000)
 #endif
 #include <deque>
 #include <vector>
@@ -324,12 +324,7 @@ void startMultithreadedSampling(double* pd_choleski,int* pi_missingmat1,int* pi_
 		} //for windows
 		#else
 		while (pthread_join(pThreads[iThread],0)) {
-
-			timespec sleepValue = {0};
-			const long INTERVAL_MS = 100000000;
-			sleepValue.tv_nsec = INTERVAL_MS;
-			nanosleep(&sleepValue, NULL);
-
+			Sleep(100);
 		}
 		#endif
 
@@ -346,10 +341,10 @@ extern "C" {
 		//rP_bn: A vector of numbers of observations per subject
 		//rP_nDraws: An integer for the number of matrices to draw
 
-		rP_choleski = coerceVector(rP_choleski, REALSXP);
-		rP_mat1Missing = coerceVector(rP_mat1Missing, LGLSXP);
-		rP_nDraws = coerceVector(rP_nDraws, INTSXP);
-		rP_nCPU = coerceVector(rP_nCPU, INTSXP);
+		PROTECT(rP_choleski = coerceVector(rP_choleski, REALSXP));
+		PROTECT(rP_mat1Missing = coerceVector(rP_mat1Missing, LGLSXP));
+		PROTECT(rP_nDraws = coerceVector(rP_nDraws, INTSXP));
+		PROTECT(rP_nCPU = coerceVector(rP_nCPU, INTSXP));
 		/*check input parameters*/
 
 		SEXP Rdim1,Rdim2,Rdim3;
@@ -385,7 +380,7 @@ extern "C" {
 			startMultithreadedSampling(REAL(rP_choleski),LOGICAL(rP_mat1Missing),NULL,*INTEGER(rP_nDraws),maxB1,maxB2, n1, n2, nCPU, REAL(output1),REAL(output1)+*INTEGER(rP_nDraws));
 		}
 
-		UNPROTECT(4);
+		UNPROTECT(8);
 		return output1;
 	}
 

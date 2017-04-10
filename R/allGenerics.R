@@ -15,6 +15,8 @@
 #' @export
 #' @docType methods
 #' @rdname getPsi-methods
+#' @references P.Rothery (1979) Biometrika 66(3):629-639
+#' 
 #'
 #' @examples
 #'

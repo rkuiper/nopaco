@@ -1,8 +1,8 @@
 Package: nopaco
 Type: Package
-Title: Non-Parametric Concordance Coefficient: A Non-Parametric Concordance Test
-Version: 1.0.1
-Date: 2017-03-24
+Title: Non-Parametric Concordance Coefficient
+Version: 1.0.2
+Date: 2017-03-26
 Authors@R: c(
     person("Rowan","Kuiper",email="r.kuiper.emc@gmail.com",role=c("cre","aut")),
     person("Remco","Hoogenboezem",role=c("aut")),
@@ -22,3 +22,4 @@ Suggests:
     MASS
 SystemRequirements: 
     C++11
+RoxygenNote: 6.0.1

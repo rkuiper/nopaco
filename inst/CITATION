@@ -5,7 +5,7 @@
        person("Remco","Hoogenboezem", role = c("aut"))
 	 ),
      year = "2017",
-     note = "version 0.99.10",
+     note = "version 1.0.2",
      url = "https://CRAN.R-project.org/package=nopaco",
      key = "nopaco-package"
    )

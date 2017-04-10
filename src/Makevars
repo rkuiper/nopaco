@@ -1,1 +1,2 @@
 CXX_STD = CXX11
+#PKG_CPPFLAGS= -O3 -Wall -Wall -Wextra -Werror -pipe -pedantic #Debug flags

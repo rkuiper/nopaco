@@ -1,0 +1,217 @@
+%\VignetteIndexEntry{nopaco introduction}
+\documentclass[a4paper]{article}
+
+%% Language and font encodings
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+
+%% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+%% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\title{nopaco: a non-parametric concordance coefficient}
+\author{Rowan Kuiper and Remco Hogenboezem}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+\maketitle
+<<echo=FALSE>>=
+@
+
+Nopaco is a non-parametric concordance coefficient. It can be applied to determine the concordance between two or more repeated measurements in at least two subjects. These values have to be continuous in nature. Not  all subjects need to have similar number of repeated measurements (i.e. unbalanced designs are allowed). 
+
+Within this vignette we will explain the use of this package by following the problem depicted in Figure \ref{fig:flowchart}. The gene expression profiles for 100 subjects are determined by running microarrays in duplo for each subject. Two gene models (model A and model B) that allow estimation of risk (e.g. survival), are applied to these profiles. For both models the concordance between risk scores are determined. In addition, the difference between both concordances will be assessed.
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.45\textwidth]{flowchart.pdf}
+\caption{ A hypothetical problem in order to illustrate the use of the package.\label{fig:flowchart}}
+\end{figure}
+
+\section{Running nopaco}
+<<>>=
+library(nopaco)
+@
+
+The data for the above hypothetical situation can be obtained by:
+<<>>=
+data(scores)
+@
+The data is plotted in Figure \ref{fig:dataPlot}.
+
+<<echo=FALSE>>=
+scatterBarNorm <- function(x, dcol="blue", lhist=20, num.dnorm=5*lhist, xlab,ylab,main,...){
+## check input
+stopifnot(ncol(x)==2)
+if (missing(xlab)) xlab = colnames(x)[1]
+if (missing(ylab)) ylab = colnames(x)[2]
+if (missing(main)) main = ""
+## set up layout and graphical parameters
+layMat <- matrix(c(2,0,1,3), ncol=2, byrow=TRUE)
+layout(layMat, widths=c(5/7, 2/7), heights=c(2/7, 5/7))
+ospc <- 0.5 # outer space
+pext <- 4 # par extension down and to the left
+bspc <- 1 # space between scatter plot and bar plots
+par. <- par(mar=c(pext, pext, 0, 0),
+oma=rep(ospc, 4)) # plot parameters
+## scatter plot
+plot(x, xlim=range(c(x[,1],x[,2])), ylim=range(c(x[,1],x[,2])), xlab=main,ylab="", ...)
+abline(a=0,b=1,lty=2)
+## 3) determine barplot and height parameter
+## histogram (for barplot-ting the density)
+xhist <- hist(x[,1], plot=FALSE, breaks=seq(from=min(x[,1]), to=max(x[,1]),
+length.out=lhist))
+yhist <- hist(x[,2], plot=FALSE, breaks=seq(from=min(x[,2]), to=max(x[,2]),
+length.out=lhist)) # note: this uses probability=TRUE
+## determine the plot range and all the things needed for the barplots and lines
+xx <- seq(min(x[,1]), max(x[,1]), length.out=num.dnorm) # evaluation points for the overlaid density
+xy <- dnorm(xx, mean=mean(x[,1]), sd=sd(x[,1])) # density points
+yx <- seq(min(x[,2]), max(x[,2]), length.out=num.dnorm)
+yy <- dnorm(yx, mean=mean(x[,2]), sd=sd(x[,2]))
+## barplot and line for x (top)
+par(mar=c(bspc, pext, 0, 0))
+barplot(xhist$density, axes=FALSE, ylim=c(0, max(xhist$density, xy)),
+space=0,xlab=xlab) # barplot
+title(xlab=xlab,line=0)
+lines(seq(from=0, to=lhist-1, length.out=num.dnorm), xy, col=dcol) # line
+## barplot and line for y (right)
+par(mar=c(pext, bspc, 0, 0))
+barplot(yhist$density, axes=FALSE, xlim=c(0, max(yhist$density, yy)),
+space=0, horiz=TRUE,ylab=ylab) # barplot
+title(ylab=ylab,line=0,srt=180)
+lines(yy, seq(from=0, to=lhist-1, length.out=num.dnorm), col=dcol) # line
+## restore parameters
+par(par.)
+}
+@
+
+\begin{figure}[H]
+\centering
+<<modelA, fig=TRUE,echo=FALSE,width=4,height=4>>=
+scatterBarNorm(scores[["modelA"]],pch=21,bg='black',main="model A")
+@
+<<modelB, fig=TRUE,echo=FALSE,width=4,height=4>>=
+scatterBarNorm(scores[["modelB"]],pch=21,bg='black',main="model B")
+@
+\caption{The scores for replicates 1 (horizontally) versus replicates 2 (vertically) as obtained by model A (top) and model B (bottom). The marginal distributions are given by histograms.\label{fig:dataPlot}}
+\end{figure}
+
+
+We can obtain the non-parametric concordance coeffcients for the scores obtained by model scores A or B:
+
+<<>>=
+getPsi( scores[["modelA"]] )
+getPsi( scores[["modelB"]] )
+@
+
+These scores reflect the probability that any randomly drawn value out of the data matrix will not fit inbetween any random paired value (i.e. fit inbetween the replicate measurements). Higher probabiltities reflect better concordances. We can test whether or not these concordance are better than random:
+<<>>=
+concordance.test( scores[["modelA"]] )
+concordance.test( scores[["modelB"]] )
+@
+
+Here model A seems to have a higher concordance than model B. As these concordances are based on the same underlying set of subjects, we can test for a difference in concordance between model A and model B: 
+<<>>=
+diffTest<-concordance.test(scores[["modelA"]], scores[["modelB"]])
+diffTest
+@
+
+The test shows that the two models differ significantly in concordance. In order to extract the results we can use the following commands:
+<<>>=
+coef(diffTest)
+diffTest$pvalue
+diffTest$psi
+diffTest$ci
+diffTest$alpha
+@
+
+\section{Appendix}
+\subsection{Generating hypothetical data}
+To create the above example, lets assume a matrix $\boldsymbol{X}_0$ for 100 subjects in the rows and 3 genes in the columns. Matrix $\boldsymbol{X}_0$ contains the true expressions that are drawn from a multivariate normal distribution $\boldsymbol{X}_0 \sim \mathcal{N}\left(\boldsymbol{\mu}_{0},\boldsymbol{\Sigma}_{0}\right)$ in which the expected values and variances are described by $\boldsymbol{\mu}_{0}=\left[0,0,0\right]$ and \\ 
+\begin{center}
+	$\boldsymbol{\Sigma}_{0} = \begin{bmatrix}
+	1& 0.4&0.4\\
+	0.4 &1&0.4\\ 
+	0.4&0.4&1
+	\end{bmatrix}$.
+\end{center}.
+
+<<>>=
+library(MASS) ##Needed for rmvnorm
+
+set.seed(1);
+
+#A covariance matrix
+S <- matrix(0.4,ncol=3,nrow=3); diag(S)<-1 	
+
+#Underlying true expressions
+X0 <- mvrnorm(n=100,mu=c(0,0,0),Sigma=S)    						
+@
+
+
+However, in addition to the true expressions, a microarray experiment will generate a certain amount of noise which is reflected by matrix ${Z}_{k}$ for replicate $k=\left(1..2\right)$. I.e. matrix $\boldsymbol{Z}_k$ contains replicate specific errors, which are drawn from $\boldsymbol{Z}_k \sim \mathcal{N}\left(\boldsymbol{\mu}_{\epsilon} \boldsymbol{\Sigma}_{\epsilon}\right)$ with bias and variance $\boldsymbol{\mu}_{\epsilon}$ and $\boldsymbol{\Sigma}_{\epsilon}$. For both replicate $k=1$ we assume no added bias (i.e $\boldsymbol{\mu}_{\epsilon}=\left[0,0,0\right]$). Also we assume no added variance for replicate $k=1$ while replicate $k=2$ has 
+\begin{center}
+	$\boldsymbol{\Sigma}_{\epsilon} = \begin{bmatrix}
+	0.0& 0&0\\
+	0 &0.1&0\\ 
+	0&0&0.2
+	\end{bmatrix}$
+\end{center}, resulting in measurement errors in the second replicate that are expected to increase for genes 1 to 3.
+
+<<>>=
+#Measurement errors replicate 1
+Z1 <- mvrnorm(n=100,mu=c(0,0,0),Sigma=diag(c(0,0,0)))                   
+
+#Measurement errors replicate 2
+Z2 <- mvrnorm(n=100,mu=c(0,0,0),Sigma=diag(c(0,0.1,0.2))) 
+@
+
+
+Then the observed expression profiles are defined as the true expressions plus measurement error $\boldsymbol{X}_k = \boldsymbol{X}_0+\boldsymbol{Z}_{k}$ for replicate $k=\left(1..2\right)$ 
+
+<<>>=
+#Replicate matrix 1: True expressions plus error
+X1 <- X0 + Z1
+
+#Replicate matrix 2: True expressions plus error
+X2 <- X0 + Z2
+@
+
+
+The next things to define are the two hypothetical models. Let the score of model A be $\boldsymbol{a} = e^{\textit{gene1}+\textit{gene2}}$ and the score of model B be $\boldsymbol{b} = \textit{gene2}+\textit{gene3}$.
+
+
+<<>>= 
+a<-data.frame(
+"replicate1"=exp(rowSums(X1[,1:2])),
+"replicate2"=exp(rowSums(X2[,1:2])),
+row.names=paste("patient",c(1:nrow(X1)),sep="")
+)
+
+b<-data.frame(
+"replicate1"=rowSums(X1[,2:3]),
+"replicate2"=rowSums(X2[,2:3]),
+row.names=paste("patient",c(1:nrow(X1)),sep="")
+)
+
+scores = list(modelA=a,modelB=b)
+
+
+
+@
+
+\subsection{Session info}
+
+<<>>=
+sessionInfo()
+@
+\end{document}
