@@ -16,6 +16,7 @@
 \usepackage[colorinlistoftodos]{todonotes}
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
 
+
 \title{nopaco: a non-parametric concordance coefficient}
 \author{Rowan Kuiper and Remco Hogenboezem}
 
@@ -30,9 +31,7 @@
 
 Nopaco is a non-parametric concordance coefficient. It can be applied to determine the concordance between two or more repeated measurements in at least two subjects. These values have to be continuous in nature. Not  all subjects need to have similar number of repeated measurements (i.e. unbalanced designs are allowed). 
 
-Within this vignette we will explain the use of this package by following the problem depicted in Figure \ref{fig:flowchart}. The gene expression profiles for 100 subjects are determined by running microarrays in duplo for each subject. Two gene models (model A and model B) that allow estimation of risk (e.g. survival), are applied to these profiles. For both models the concordance between risk scores are determined. In addition, the difference between both concordances will be assessed.
-\begin{figure}[h]
-\centering
+In this vignette we will explain the use of this package by tackling the problem depicted in Figure \ref{fig:flowchart}. The gene expression profiles for 100 subjects are determined by running microarrays in duplicate for each subject. Two gene models (model A and model B) that allow estimation of risk (e.g. survival), are applied to these profiles. For both models the concordance between risk scores are determined. In addition, the difference between both concordances will be assessed.\begin{figure}[h]\centering
 \includegraphics[width=0.45\textwidth]{flowchart.pdf}
 \caption{ A hypothetical problem in order to illustrate the use of the package.\label{fig:flowchart}}
 \end{figure}
@@ -94,15 +93,22 @@ par(par.)
 }
 @
 
+<<modelA, fig=FALSE,echo=FALSE>>=
+pdf("x-modelA.pdf",width=4,height=4)
+scatterBarNorm(scores[["modelA"]],pch=21,bg='black',main="model A")
+invisible(dev.off())
+@
+<<modelB, fig=FALSE,echo=FALSE>>=
+pdf("x-modelB.pdf",width=4,height=4)
+scatterBarNorm(scores[["modelB"]],pch=21,bg='black',main="model B")
+invisible(dev.off())
+@
+
 \begin{figure}[H]
 \centering
-<<modelA, fig=TRUE,echo=FALSE,width=4,height=4>>=
-scatterBarNorm(scores[["modelA"]],pch=21,bg='black',main="model A")
-@
-<<modelB, fig=TRUE,echo=FALSE,width=4,height=4>>=
-scatterBarNorm(scores[["modelB"]],pch=21,bg='black',main="model B")
-@
-\caption{The scores for replicates 1 (horizontally) versus replicates 2 (vertically) as obtained by model A (top) and model B (bottom). The marginal distributions are given by histograms.\label{fig:dataPlot}}
+\includegraphics[width=0.45\textwidth]{x-modelA.pdf}
+\includegraphics[width=0.45\textwidth]{x-modelB.pdf}
+\caption{The scores for replicates 1 (horizontally) versus replicates 2 (vertically) as obtained by model A (left) and model B (right). The marginal distributions are given by histograms.\label{fig:dataPlot}}
 \end{figure}
 
 
@@ -125,7 +131,7 @@ diffTest<-concordance.test(scores[["modelA"]], scores[["modelB"]])
 diffTest
 @
 
-The test shows that the two models differ significantly in concordance. In order to extract the results we can use the following commands:
+The test shows that the two models have significantly different concordances. In order to extract the results we can use the following commands:
 <<>>=
 coef(diffTest)
 diffTest$pvalue
@@ -136,7 +142,7 @@ diffTest$alpha
 
 \section{Appendix}
 \subsection{Generating hypothetical data}
-To create the above example, lets assume a matrix $\boldsymbol{X}_0$ for 100 subjects in the rows and 3 genes in the columns. Matrix $\boldsymbol{X}_0$ contains the true expressions that are drawn from a multivariate normal distribution $\boldsymbol{X}_0 \sim \mathcal{N}\left(\boldsymbol{\mu}_{0},\boldsymbol{\Sigma}_{0}\right)$ in which the expected values and variances are described by $\boldsymbol{\mu}_{0}=\left[0,0,0\right]$ and \\ 
+To create the example given above, let's assume a matrix $\boldsymbol{X}_0$ for 100 subjects in the rows and 3 genes in the columns. Matrix $\boldsymbol{X}_0$ contains the true expressions that are drawn from a multivariate normal distribution $\boldsymbol{X}_0 \sim \mathcal{N}\left(\boldsymbol{\mu}_{0},\boldsymbol{\Sigma}_{0}\right)$ in which the expected values and variances are described by $\boldsymbol{\mu}_{0}=\left[0,0,0\right]$ and \\ 
 \begin{center}
 	$\boldsymbol{\Sigma}_{0} = \begin{bmatrix}
 	1& 0.4&0.4\\
@@ -164,8 +170,9 @@ However, in addition to the true expressions, a microarray experiment will gener
 	0.0& 0&0\\
 	0 &0.1&0\\ 
 	0&0&0.2
-	\end{bmatrix}$
-\end{center}, resulting in measurement errors in the second replicate that are expected to increase for genes 1 to 3.
+	\end{bmatrix}$,
+\end{center}
+resulting in measurement errors in the second replicate that are expected to increase for genes 1 to 3.
 
 <<>>=
 #Measurement errors replicate 1

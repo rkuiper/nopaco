@@ -154,7 +154,7 @@ void Node(int iElement,map<long,double> * pPrevNode,unordered_map< string, map<l
 //----------------------------------------------------------------
 void processLevel(unordered_map< string ,map<long,double> >::iterator prevLevel_it, unordered_map< string ,map<long,double> >::iterator prevLevel_to, unordered_map< string, map<long,double> >* curLevel){
 	int iElement;
-	for(prevLevel_it; prevLevel_it != prevLevel_to; prevLevel_it++)
+	for(; prevLevel_it != prevLevel_to; prevLevel_it++)
     {
         State(prevLevel_it->first); //Set the state to the one observed in the given prev node
 
