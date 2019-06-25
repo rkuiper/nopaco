@@ -27,8 +27,8 @@ An object of \code{\link{ConcordanceTest-class}}
 }
 \details{
 \itemize{
-\item Testing the deviation from random concordance: if only one matrix is given (i.e. argument \code{x}), its concordance will be tested for a deviation from a random concordance. The default alternative hypothesis is 'greater', thus higher concordance than would have been observed by chance. For small matrices (depending on number of replicate measurements) an exact method will be used to determine to p-value. In case of larger matrices either, the alternative beta approach (default), a beta approximation or a normal approximation is used. To enforce the use of either one method, the \code{method} argument can be used with value "exact","alt.beta","beta" or "normal".
-\item Testing for a difference between concordances: if both arguments \code{x} and \code{y} have been given, the equality of concordances of both matrices is tested. The default alternative hypothesis is 'two.sided'. Both matrices must be of equal size and have corresponding missing entries. Eventual missing data in one matrix will also be set missing in the other.
+\item Testing the deviation from random concordance: if only one matrix is given (i.e. argument \code{x}), its concordance will be tested against alternative hypothesis of finding a higher concordance under random sampling conditions. For small matrices (depending on number of replicate measurements) an exact method will be used to determine to p-value. In case of larger matrices where the exact approach in not feasible, either the revised-beta approach (default), a beta approximation or a normal approximation is used. To enforce the use of either one method, the \code{method} argument can be used with value "exact","Rbeta","beta" or "normal".
+\item Testing for a difference between concordances: if both arguments \code{x} and \code{y} have been given, the equality of concordances of both matrices is tested. The default alternative hypothesis is 'two.sided'. Both matrices must be of equal size and have corresponding missing entries (\code{NA} values). In case of missing data in one matrix, the same entries in the other matrix will also be set to missing. 
 }
 Unbalanced data due to randomly missing data or an unequal number of repeated measurements per subject is allowed. In that case, missing or unknown values must be set to \code{NA}.
 }
@@ -59,3 +59,4 @@ P.Rothery (1979) Biometrika 66(3):629-639
 Other concordance functions: \code{\link{coef}},
   \code{\link{getPsi}}, \code{\link{rfromPsi}}
 }
+\concept{concordance functions}

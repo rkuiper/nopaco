@@ -85,13 +85,8 @@ getVar<-function(mat,...){
     return((cii-cij)/(45*omega^2)*(t+1))
 }
 
-.sampleVariance<-function(choleskimat,missingx,missingy=NULL){
-    ##Obtain variance for psi by choleskimat
-    missingx<-is.finite(missingx)
-    if (!is.null(missingy)){
-        missingy<-is.finite(missingy)
-    }
-
+.bootstrapCI<-function(x,y=NULL){ 
+    ##Obtain confidence interval by bootstrapping
 	if (exists(".Random.seed", .GlobalEnv)) {
         oldseed <- .GlobalEnv$.Random.seed
     } else {
@@ -100,10 +95,9 @@ getVar<-function(mat,...){
 
 	set.seed( as.integer(options("concordance.seed")$concordance.seed) )
     psi<-.Call(
-        "samplePsi",
-        choleskimat,
-        missingx,
-        missingy,
+        "bootstrapCI",
+        x,
+        y,
         as.integer(options("concordance.nDraws")$concordance.nDraws),
         as.integer(options("concordance.nCPU")$concordance.nCPU)
     )
@@ -113,10 +107,6 @@ getVar<-function(mat,...){
         .GlobalEnv$.Random.seed <- oldseed
     } else {
         rm(".Random.seed", envir = .GlobalEnv)
-    }
-
-    if (is.null(missingy)){
-        return(psi[,1,drop=FALSE])
     }
     return(psi)
 }

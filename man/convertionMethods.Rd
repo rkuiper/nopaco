@@ -50,3 +50,4 @@ Rothery, P. 'A nonparametric measure of intraclass correlation', Biometrika, 66,
 Other concordance functions: \code{\link{coef}},
   \code{\link{concordance.test}}, \code{\link{getPsi}}
 }
+\concept{concordance functions}

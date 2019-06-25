@@ -6,7 +6,6 @@
 // Description : concordance
 //----------------------------------------------------------------
 
-#include <iostream> //##DEGBUG  ONLY!
 #include "exactdistribution.h"
 
 #include <map>

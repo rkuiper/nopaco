@@ -6,7 +6,6 @@
 // Description : concordance
 //----------------------------------------------------------------
 
-#include <iostream>
 #include <vector>
 #include <map>
 #include <time.h>
@@ -305,7 +304,7 @@ void DataClass::preprocess( void ){
 
 
 DataClass::DataClass(double* pmat1, unsigned int n, unsigned int maxB){
-	//Assume that all values in MAT1 are ordered within a subject with non finite values at the end (i.e. last columns))
+	//Assume that all values in MAT1 are ordered within a subject with non finite values at the end (i.e. last columns)) //RNW TO CHECK... is this realy still an assumption?
 	//Assume subject in the rows and observations in the columns
 	//Transpose the matrix such that observation are in the rows and subjects in the columns
 	transpose(pmat1,n,maxB);

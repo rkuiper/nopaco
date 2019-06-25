@@ -1,6 +1,13 @@
 NEWS file for the nopaco package
 
 --------------------------------
+Version 1.0.4
+* Avoids non-stable CI estimates by excluding replicates with less than 3 values in the concordance test for differences.
+* Now obtains confidence intervals by bootstrapping instead of assuming asympototic normality.
+* Debuged code: Confidence intervals were not correct if (psi1 > psi2) in the concordance.test function
+* Removed the Latex package headers for language and font encodings: 'english', 'utf8x', and 'T1'
+
+--------------------------------
 Version 1.0.3
 * Added a vignette explaining the basic use of the package. The vignette works out an expample which data is given in the newly added data scores.rda (also requiring newly added data documentation)
 * A major change was made by replacing the Google dense-hash (and corresponding configuration script) by an c++11 std unordered_map in order to solve the poor portability of the package. 

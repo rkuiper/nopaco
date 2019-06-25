@@ -31,3 +31,4 @@ coef(testResult)
 Other concordance functions: \code{\link{concordance.test}},
   \code{\link{getPsi}}, \code{\link{rfromPsi}}
 }
+\concept{concordance functions}
