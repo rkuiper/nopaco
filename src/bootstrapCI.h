@@ -9,7 +9,13 @@
 #ifndef __BOOTSTRAPCI_H__
 #define __BOOTSTRAPCI_H__
 
+
 #define STRICT_R_HEADERS
+//----------------------------------------------------------------
+#include <R.h>
+#include <Rinternals.h>
+//----------------------------------------------------------------
+
 
 extern "C" {
 	SEXP bootstrapCI(SEXP MAT1,SEXP MAT2,SEXP rP_nDraws,SEXP rP_nCPU);

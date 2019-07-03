@@ -19,14 +19,13 @@ Bootstrap input matrices to find a condidence interval for psi
 #endif
 #include <deque>
 #include <vector>
-
 #include <limits>
 #include <iostream>
-#include "getPsi.h"
-//#include "samplePsi.h"
-
 #include <algorithm>    
-#include <R_ext/Random.h>      //R's rng's
+
+#include "getPsi.h"
+#include "bootstrapCI.h"
+//#include <R_ext/Random.h>      //R's rng's should be included by R.h
 
 //----------------------------------------------------------------
 using namespace std;
@@ -316,44 +315,35 @@ extern "C" {
    
         SEXP dim1, dim2;
 
-		PROTECT(rP_nDraws = coerceVector(rP_nDraws, INTSXP));
-		PROTECT(rP_nCPU = coerceVector(rP_nCPU, INTSXP));
-    	PROTECT(MAT1 = coerceVector(MAT1, REALSXP));
-        UNPROTECT(3);
+		rP_nDraws = PROTECT(coerceVector(rP_nDraws, INTSXP));
+		rP_nCPU = PROTECT(coerceVector(rP_nCPU, INTSXP));
+    	MAT1 = PROTECT(coerceVector(MAT1, REALSXP));
+
 		/*check input parameters*/
-
-
         PROTECT(dim1 = getAttrib( MAT1, R_DimSymbol ) );
 		nrow1 = INTEGER(dim1)[0];
 		ncol1 = INTEGER(dim1)[1];
-        UNPROTECT(1);
-    
+  
         if (MAT2!=R_NilValue){
-    		PROTECT(MAT2 = coerceVector(MAT2, REALSXP));
-            PROTECT(dim2 = getAttrib( MAT2, R_DimSymbol ) );
+    		MAT2 = PROTECT(coerceVector(MAT2, REALSXP));
+            dim2 = PROTECT(getAttrib( MAT2, R_DimSymbol ));
 		    nrow2 = INTEGER(dim2)[0];
 		    ncol2 = INTEGER(dim2)[1];
-            UNPROTECT(2);
 
             if ((nrow1!=nrow2) | (ncol1!=ncol2))  {error("Dimensions of both matrices must be the same.");}
         }
-
-         
+        
 		int nCPU = *INTEGER(rP_nCPU);
-
 		
         SEXP output1;
 		PROTECT(output1 = allocMatrix(REALSXP, *INTEGER(rP_nDraws),2));
-
 		
-        if (nrow2>0){
-             
+        if (nrow2>0){            
 			startMultithreadedSampling(REAL(MAT1),REAL(MAT2),*INTEGER(rP_nDraws),ncol1,ncol2, nrow1, nrow2, nCPU, REAL(output1),REAL(output1)+*INTEGER(rP_nDraws));
 		} else {
- 
             startMultithreadedSampling(REAL(MAT1),NULL,*INTEGER(rP_nDraws),ncol1,ncol2,  nrow1, nrow2, nCPU, REAL(output1),REAL(output1)+*INTEGER(rP_nDraws));
 		}
-        UNPROTECT(1);
+        UNPROTECT(7);
 		return output1;
         
     

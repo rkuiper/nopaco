@@ -9,15 +9,14 @@
 #include <vector>
 #include <map>
 #include <time.h>
-
 #include <algorithm>
-
 #include <deque>
 #include <limits>
-
 #include <stdlib.h>
-
 #include "getPsi.h"
+
+#include <R.h>
+#include <Rmath.h>
 //----------------------------------------------------------------
 
 

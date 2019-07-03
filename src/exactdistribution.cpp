@@ -6,18 +6,14 @@
 // Description : concordance
 //----------------------------------------------------------------
 
-#include "exactdistribution.h"
-
 #include <map>
 #include <unordered_map>
 #include <algorithm>
 #include <string>
 
+#include "exactdistribution.h"
 #include <R.h>
 #include <Rmath.h>
-#include <Rinternals.h>
-
-
 
 //----------------------------------------------------------------
 using namespace std;

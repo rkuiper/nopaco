@@ -1,6 +1,13 @@
 NEWS file for the nopaco package
 
 --------------------------------
+Version 1.0.5
+* In order to resolve the linking error on Solaris, the c++ headers are reordered in line with the description in 'Writing R Extensions': R headers after system headers.
+* Fixed memory protection inconsitentsies in c++ code
+* Added ORCID to DESCRIPTION file
+* Updated CITATIONS file
+
+--------------------------------
 Version 1.0.4
 * Avoids non-stable CI estimates by excluding replicates with less than 3 values in the concordance test for differences.
 * Now obtains confidence intervals by bootstrapping instead of assuming asympototic normality.

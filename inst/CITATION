@@ -4,8 +4,8 @@
        person("Rowan", "Kuiper", role = "aut"),
        person("Remco","Hoogenboezem", role = c("aut"))
 	 ),
-     year = "2017",
-     note = "version 1.0.2",
+     year = "2019",
+     note = "version 1.0.5",
      url = "https://CRAN.R-project.org/package=nopaco",
      key = "nopaco-package"
    )
