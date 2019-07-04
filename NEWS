@@ -1,6 +1,10 @@
 NEWS file for the nopaco package
 
 --------------------------------
+Version 1.0.6
+* Fixed memory protection inconsitentsies in c++ code that were introduced in the last bugfix
+
+--------------------------------
 Version 1.0.5
 * In order to resolve the linking error on Solaris, the c++ headers are reordered in line with the description in 'Writing R Extensions': R headers after system headers.
 * Fixed memory protection inconsitentsies in c++ code

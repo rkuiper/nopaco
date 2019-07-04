@@ -1,8 +1,8 @@
 Package: nopaco
 Type: Package
 Title: Non-Parametric Concordance Coefficient
-Version: 1.0.5
-Date: 2019-07-02
+Version: 1.0.6
+Date: 2019-07-04
 Authors@R: c(
     person("Rowan","Kuiper",email="r.kuiper.emc@gmail.com",role=c("cre","aut"),comment = c(ORCID = "0000-0002-3703-1762")),
     person("Remco","Hoogenboezem",role=c("aut")),
@@ -24,3 +24,4 @@ SystemRequirements:
     C++11
 RoxygenNote: 6.1.1
 Encoding: UTF-8
+

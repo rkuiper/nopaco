@@ -343,7 +343,8 @@ extern "C" {
 		} else {
             startMultithreadedSampling(REAL(MAT1),NULL,*INTEGER(rP_nDraws),ncol1,ncol2,  nrow1, nrow2, nCPU, REAL(output1),REAL(output1)+*INTEGER(rP_nDraws));
 		}
-        UNPROTECT(7);
+        UNPROTECT(5);
+        if (nrow2>0){ UNPROTECT(2); }
 		return output1;
         
     
