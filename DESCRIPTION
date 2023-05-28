@@ -1,8 +1,8 @@
 Package: nopaco
 Type: Package
 Title: Non-Parametric Concordance Coefficient
-Version: 1.0.6
-Date: 2019-07-04
+Version: 1.0.7
+Date: 2023-06-01
 Authors@R: c(
     person("Rowan","Kuiper",email="r.kuiper.emc@gmail.com",role=c("cre","aut"),comment = c(ORCID = "0000-0002-3703-1762")),
     person("Remco","Hoogenboezem",role=c("aut")),
@@ -13,6 +13,7 @@ Authors@R: c(
 Description: A non-parametric test for multi-observer concordance and
     differences between concordances in (un)balanced data.
 License: GPL (>= 3)
+Depends: R (>= 3.5.0)
 Imports:
     methods,
     Matrix (>= 1.1.5),
@@ -22,6 +23,5 @@ Suggests:
     MASS
 SystemRequirements: 
     C++11
-RoxygenNote: 6.1.1
+RoxygenNote: 7.2.3
 Encoding: UTF-8
-

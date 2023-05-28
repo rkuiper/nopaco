@@ -188,6 +188,7 @@ psifromR<-function(r){
 }
 
 .doStandardChecks<-function(x,y=NULL,doCheck=TRUE){
+		#Checks if concordance.nCPU<=64 : MAXIMUM_WAIT_OBJECTS must not be > 64, 
     #Adds numeric rownames if rownames are absent
     #Adds numeric colnames if colnames are absent
     #Stops in case of non numeric values (NA's are allowed)
@@ -198,6 +199,9 @@ psifromR<-function(r){
 
     ##Excludes observations with less than two replicates in either x or y
     #Sets any non-finite values (e.g. NA's) explicitly to infinite which is used in external C code.
+    
+    if (options("concordance.nCPU")> 64 ) stop("options('concordance.nCPU') must be <= 64")
+    
 	numOfTies<-0;
     if (doCheck == TRUE) {
         if(is.data.frame(x)){

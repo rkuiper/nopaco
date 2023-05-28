@@ -4,9 +4,11 @@
 \name{scores}
 \alias{scores}
 \title{Hypothetical data of outcomes for two risk models}
-\format{A list with two elements named 'modelA' and 'modelB' both containing a 
+\format{
+A list with two elements named 'modelA' and 'modelB' both containing a 
 dataframe with outcome scores for 100 subjects in the rows each having two 
-replicate measurements in the columns.}
+replicate measurements in the columns.
+}
 \source{
 \code{vignette("nopaco", package = "nopaco")}
 }

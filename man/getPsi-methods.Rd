@@ -49,7 +49,9 @@ getPsi(matRandom)
 P.Rothery (1979) Biometrika 66(3):629-639
 }
 \seealso{
-Other concordance functions: \code{\link{coef}},
-  \code{\link{concordance.test}}, \code{\link{rfromPsi}}
+Other concordance functions: 
+\code{\link{coef}()},
+\code{\link{concordance.test}()},
+\code{\link{rfromPsi}()}
 }
 \concept{concordance functions}

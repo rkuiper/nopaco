@@ -1,6 +1,11 @@
 NEWS file for the nopaco package
 
 --------------------------------
+Version 1.0.7
+* Default number of cores to use for bootstrap is set to 2. It can be manually increased by options("concordance.nCPU")
+
+
+--------------------------------
 Version 1.0.6
 * Fixed memory protection inconsitentsies in c++ code that were introduced in the last bugfix
 

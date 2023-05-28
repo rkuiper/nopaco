@@ -47,7 +47,9 @@ plot(r,psi,type='l',xlab="Pearson correlation", ylab="nonparametric concordance"
 Rothery, P. 'A nonparametric measure of intraclass correlation', Biometrika, 66, 3, 629-639  (1979).
 }
 \seealso{
-Other concordance functions: \code{\link{coef}},
-  \code{\link{concordance.test}}, \code{\link{getPsi}}
+Other concordance functions: 
+\code{\link{coef}()},
+\code{\link{concordance.test}()},
+\code{\link{getPsi}()}
 }
 \concept{concordance functions}

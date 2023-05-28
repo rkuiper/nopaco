@@ -25,7 +25,6 @@ Bootstrap input matrices to find a condidence interval for psi
 
 #include "getPsi.h"
 #include "bootstrapCI.h"
-//#include <R_ext/Random.h>      //R's rng's should be included by R.h
 
 //----------------------------------------------------------------
 using namespace std;
@@ -333,8 +332,9 @@ extern "C" {
             if ((nrow1!=nrow2) | (ncol1!=ncol2))  {error("Dimensions of both matrices must be the same.");}
         }
         
+        
 		int nCPU = *INTEGER(rP_nCPU);
-		
+		if (nCPU > 64 ) {error("nCPU must be < 65.");}
         SEXP output1;
 		PROTECT(output1 = allocMatrix(REALSXP, *INTEGER(rP_nDraws),2));
 		
