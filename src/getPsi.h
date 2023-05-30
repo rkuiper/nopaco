@@ -42,7 +42,6 @@ class DataClass
 		void R2Q( void );
 		void S2R( void );
 		void orderPerSubject( void );
-		//void BN_from_R( void );
 		void BN_from_S( void );
 
 

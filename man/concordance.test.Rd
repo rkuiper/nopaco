@@ -27,25 +27,26 @@ An object of \code{\link{ConcordanceTest-class}}
 }
 \details{
 \itemize{
-\item Testing the deviation from random concordance: if only one matrix is given (i.e. argument \code{x}), its concordance will be tested against alternative hypothesis of finding a higher concordance under random sampling conditions. For small matrices (depending on number of replicate measurements) an exact method will be used to determine to p-value. In case of larger matrices where the exact approach in not feasible, either the revised-beta approach (default), a beta approximation or a normal approximation is used. To enforce the use of either one method, the \code{method} argument can be used with value "exact","Rbeta","beta" or "normal".
-\item Testing for a difference between concordances: if both arguments \code{x} and \code{y} have been given, the equality of concordances of both matrices is tested. The default alternative hypothesis is 'two.sided'. Both matrices must be of equal size and have corresponding missing entries (\code{NA} values). In case of missing data in one matrix, the same entries in the other matrix will also be set to missing. 
+\item Testing the deviation from random concordance: if only one matrix is given (i.e. argument \code{x}), its concordance will be tested against the alternative hypothesis of finding a higher concordance under random sampling conditions. For small matrices (depending on number of replicate measurements) an exact method will be used to determine a p-value. In case of larger matrices, where the exact approach in not feasible, either the revised-beta approach (default), a beta approximation, or a normal approximation is used. To enforce the use of either one method, the \code{method} argument can be used with value "exact","Rbeta","beta" or "normal".
+\item Testing for a difference between concordances: if both arguments \code{x} and \code{y} have been given, the equality of concordances of both matrices is tested. The default alternative hypothesis is 'two.sided'. Both matrices must be of equal size and have corresponding missing entries (\code{NA} values). In case of missing data in one matrix, the same entries in the other matrix will also be set to missing. This method involves bootstrapping to estimate variance and confidence estimates, with adjustable options via the global R options "nopaco.nCPU" (default=2), "nopaco.nDraws.CI" (default=1e4) and "nopaco.seed" (default = 1). 
 }
 Unbalanced data due to randomly missing data or an unequal number of repeated measurements per subject is allowed. In that case, missing or unknown values must be set to \code{NA}.
 }
 \examples{
-require(MASS) ##to use mvrnorm function
+require(MASS) ##to use the 'mvrnorm' function
 
 #Generate a matrix without concordance
+# for three observers in two samples
 matRandom <- matrix(rnorm(3*20),20,3)
 concordance.test(matRandom) 
 
-#Generate a matrix with strong concordance
+#Generate a corresponding matrix with strong concordance
 sigma<-matrix(0.8,3,3)
 diag(sigma)<-1
 matConcordant <- mvrnorm(20,mu=rep(0,3),Sigma=sigma)
 concordance.test(matConcordant)
 
-#Test concordances between matrices
+#Test concordances between the two matrices
 aTest <- concordance.test(matConcordant, matRandom)
 
 getPsi(aTest)

@@ -6,6 +6,7 @@
 // Description : concordance
 //----------------------------------------------------------------
 
+#include <iostream> //DEBUG ONLY!!!
 #include <vector>
 #include <map>
 #include <time.h>
@@ -37,7 +38,7 @@ typedef struct
 
 typedef struct
 {
-    long    lPosition;
+    long  lPosition;
     long	lValue;
 
 }lKEY_lVALUE_PAIR;
@@ -85,7 +86,6 @@ inline T  transpose (T mat, int const& nrow,int const& ncol)
 
 
 DataClass::~DataClass(){
-	//cout << "CALLED\n";
 	if (this->BN!=NULL){ free(this->BN);}
 
 	if (this->sMAT!=NULL){ free(this->sMAT);}
@@ -107,7 +107,7 @@ double DataClass::calculatePSI(void ){
 
 	unsigned long k,j;
 
-	//cout << "nrow = " << n <<"; ncol = "<< bmax<<endl;
+	//std::cerr << "nrow = " << n <<"; ncol = "<< bmax<<endl;
 	//Calculate psi
 	long theta;
 	double* pdTempPsi = (double*)malloc(sizeof(double) * n);
@@ -115,9 +115,11 @@ double DataClass::calculatePSI(void ){
 
 	for (j = 0; j < n; j++){
 
+		//std::cerr<<"\n";
 		for (k = 1; k < bn[j]; k++){
 			theta = -2 * k*(k-bn[j]) ; // -2*k*(k-b)
 			pdTempPsi[j]+= theta * (QMAT[j*bmax+(k-1)]);
+			//std::cerr<< QMAT[j*bmax+(k-1)]<<", ";
 		}
 
 	}
@@ -135,14 +137,14 @@ double DataClass::calculatePSI(void ){
 
 void DataClass::R2Q(){
 	//Convert R matrix to Q matrix (i.e. Q_1 = R_2-R_1-1):
-	//cout << "Q:\n";
+	//std::cerr << "Q:\n";
 	unsigned int i=0,j=0;
 	for (j = 0; j < this->ncol; j++){
 		for (i = 0; i < (this->BN[j]-1); i++){
 			this->qMAT[j*this->nrow+i] = this->rMAT[j*this->nrow+i+1]-this->rMAT[j*this->nrow+i]-1;
-			//cout << "\t" << this->qMAT[j*this->nrow+i];
+			//std::cerr << "\t" << this->qMAT[j*this->nrow+i];
 		}
-		//cout << "\n";
+		//std::cerr<< "\n";
 	}
 }
 //----------------------------------------------------------------
@@ -152,38 +154,36 @@ void DataClass::R2Q(){
 
 void DataClass::S2R(){
 	//Convert to int
-	unsigned long count =0,i=0,j=0,k=0,v=0;
-	unsigned long nInf = 0;
+	unsigned long count = 0, i = 0, j = 0, k = 0, v = 0, nNAN = 0;
 	double l =0.0;
 
-	lKEY_dVALUE_PAIR* pKVP = (lKEY_dVALUE_PAIR*)malloc(sizeof(lKEY_dVALUE_PAIR) * (this->ncol* this->nrow)); //a vector (for each element in the matrix) of key value pairs of doubles
-	//cout << "Alloc: " << this->ncol* this->nrow <<"\t";
+  //a vector (for each element in the matrix) of key value pairs of doubles
+	lKEY_dVALUE_PAIR* pKVP = (lKEY_dVALUE_PAIR*)malloc(sizeof(lKEY_dVALUE_PAIR) * (this->ncol* this->nrow)); 
 
 	//First sort all values in the whole matrix	to obtain rank values
+	//std::cerr<<"S:\n";
 	for (j = 0; j < this->ncol; j++){
+	//std::cerr<<"\n";
 		for (i = 0; i < this->nrow; i++){
+			//std::cerr<< *(sMAT+j* this->nrow+i) <<",";
 			pKVP[count].lPosition = count; //Set each key value pair
 			pKVP[count++].dValue = *(sMAT+j* this->nrow+i);
-			if (*(sMAT+j* this->nrow+i) == std::numeric_limits<double>::infinity() ) {nInf++;}
+			if (isnan(*(sMAT+j* this->nrow+i) ) ) {nNAN++;}
 		}
 	}
 
 	sort(pKVP,pKVP+(this->nrow*this->ncol),predicate_k_v_pair);
 
-	//for (j = 0; j < this->nrow  * this->ncol; j++){
-	//	cout << "Value: " << pKVP[j].dValue <<"\torder: " << j << "\tposition :"<< pKVP[j].lPosition << "\tsubject :"<< (long)pKVP[j].lPosition/this->nrow << "\n";
-	//}
-
-	//Next loop  through the sorted values except the infinities which are at the end
+	//Next loop  through the sorted values except the NaNs which are at the end
 	i = 0;
 	unsigned long from = 0, to = 0, from2 = 0, to2 = 0;
 
 
-	for (i=0; i < (this->nrow*this->ncol - nInf);i++){
+	for (i=0; i < (this->nrow*this->ncol - nNAN);i++){
 		//And detect stretches of tied values
 
 		from = i;to=i;
-		while (i < (this->nrow*this->ncol - nInf-1)){
+		while (i < (this->nrow*this->ncol - nNAN-1)){
 		 	if (pKVP[i].dValue!=pKVP[i+1].dValue){break;}
 			i++; //While tied value
 		}
@@ -206,11 +206,11 @@ void DataClass::S2R(){
 			for (j = from; j <= to; j++){
 				pKVP[j].dValue = pKVP[j].lPosition ;
 			}
-			sort(&(pKVP[from]),pKVP+(to),predicate_k_v_pair);
+			sort(pKVP+from,pKVP+to+1,predicate_k_v_pair);
 
-			//for (j = from; j <= to; j++){
-			//   cout << "Value: " << pKVP[j].dValue <<"\torder: " << j << "\tposition :"<< pKVP[j].lPosition << "\tsubject :"<< (long)pKVP[j].lPosition/this->nrow << "\n";
-			//}
+//			for (j = from; j <= to; j++){
+//			   cout << "Value: " << pKVP[j].dValue <<"\torder: " << j << "\tposition :"<< pKVP[j].lPosition << "\tsubject :"<< (long)pKVP[j].lPosition/this->nrow << "\n";
+//			}
 
 			long curSubj;j=from;
 			//Loop through them
@@ -236,20 +236,22 @@ void DataClass::S2R(){
 					count++;
 
 				}
-
 			}
-
 		}
-
-
-
 	}
 
-	for (i = (this->nrow*this->ncol - nInf); i < (this->nrow*this->ncol ); i++){
-		this->rMAT[pKVP[i].lPosition] = std::numeric_limits<double>::infinity();  //Assign the missing values as inifinies.
+	for (i = (this->nrow*this->ncol - nNAN); i < (this->nrow*this->ncol ); i++){
+		//this->rMAT[pKVP[i].lPosition] = std::numeric_limits<double>::infinity();  //Assign the missing values as inifinies.
+        this->rMAT[pKVP[i].lPosition] = NAN;  //Assign the missing values as inifinies.
 	}
-
-
+ /*std::cerr<<"R:\n";
+	for (j = 0; j < (this->ncol ); j++){
+		std::cerr<<"\ni";
+		for (i = 0; i < (this->nrow ); i++){
+			std::cerr<<this->rMAT[ j* this->nrow + i] <<", ";
+		}
+	}*/
+	
 	free(pKVP);
 }
 //----------------------------------------------------------------
@@ -261,6 +263,11 @@ void DataClass::orderPerSubject(){
 	unsigned int j;
 	for (j = 0; j < this->ncol; j++){
 		sort(this->sMAT+j* this->nrow, this->sMAT+(j+1)* this->nrow); //sort column j
+		//std::cerr<<"\ncol " << j <<": ";
+		//for (int k = 0; k < this->nrow; k++) {
+		// std::cerr<< *(this->sMAT+j*this->nrow+k)<<",";
+	  //}
+		//std::cerr<<"\n";
 	}
 }
 //----------------------------------------------------------------
@@ -269,28 +276,31 @@ void DataClass::BN_from_S(){
 	unsigned long i,j;
 	this->T = 0;
 	this->omega = 0;
-	//Determine BN (= vector of length b indicating the number of known patients with 1..b measurements)  and T (=total number of pivots) and omega (=b*(b-1)*(t-b)
-	for (j = 0; j < this->ncol; j++){
-		i = this->nrow-1;
-		while ((*(this->sMAT + j * this->nrow + i))==std::numeric_limits<double>::infinity()){ i--;}
-		this->BN[j] = i+1; //Set the number of real values for patient j
-		(this->T)+=this->BN[j]; //And the number of pivots
-	}
-	//Now that T is known , we can determine omega
-	for (j = 0; j < this->ncol; j++){
-		this->omega += this->BN[j]*(this->BN[j]-1) * (this->T-this->BN[j]);
-	}
+	//Determine BN (= vector of length b indicating the number of known subjects with 1..b measurements)  and T (=total number of pivots) and omega (=b*(b-1)*(t-b)
+    if (this->nrow>0){
+        for (j = 0; j < this->ncol; j++){ //loop subjects
+		    i = this->nrow-1;
+		    //while ((*(this->sMAT + j * this->nrow + i))==std::numeric_limits<double>::infinity()){ i--;}
+		    while (isnan(*(this->sMAT + j * this->nrow + i))){ i--;}
+		    this->BN[j] = i+1; //Set the number of real values for patient j
+		    (this->T)+=this->BN[j]; //And the number of pivots
+	    }
+	    //Now that T is known , we can determine omega
+	    for (j = 0; j < this->ncol; j++){
+		    this->omega += this->BN[j]*(this->BN[j]-1) * (this->T-this->BN[j]);
+	    }
+    }
 }
+
 //----------------------------------------------------------------
 
 
 void DataClass::preprocess( void ){
 	//Order each column
 	this->orderPerSubject();
-
 	//Determine BN (= vector of length b indicating the number of known patients with 1..b measurments)  and T (=total number of pivots irrespective of b: t_b +b = T);
 	this->BN_from_S();
-
+	
 	//Convert to int
 	this->S2R();
 
@@ -298,12 +308,12 @@ void DataClass::preprocess( void ){
 	//this->BN_from_R();
 
 	this->R2Q();
+
 }
 //----------------------------------------------------------------
 
 
 DataClass::DataClass(double* pmat1, unsigned int n, unsigned int maxB){
-	//Assume that all values in MAT1 are ordered within a subject with non finite values at the end (i.e. last columns)) //RNW TO CHECK... is this realy still an assumption?
 	//Assume subject in the rows and observations in the columns
 	//Transpose the matrix such that observation are in the rows and subjects in the columns
 	transpose(pmat1,n,maxB);
@@ -317,8 +327,7 @@ DataClass::DataClass(double* pmat1, unsigned int n, unsigned int maxB){
 	this->qMAT = (double*)malloc(sizeof(double) * (this->ncol*this->nrow));
 	this->rMAT = (double*)malloc(sizeof(double) * (this->ncol*this->nrow));
 
-	for (unsigned int i = 0; i < (this->ncol*this->nrow); i++){		this->sMAT[i] = pmat1[i];	}
-
+	for (unsigned int i = 0; i < (this->ncol*this->nrow); i++){		this->sMAT[i] = pmat1[i];}
 	this->T =0;
 	this->omega = 0;
 	this->seed =1;
@@ -371,7 +380,7 @@ DataClass::DataClass (const DataClass &obj) {
 
 
 double getPsi(double* MAT1, unsigned int n, unsigned int maxB){
-	DataClass dc(MAT1,n, maxB);
+	DataClass dc(MAT1, n, maxB);
 	return( dc.calculatePSI());
 
 }
@@ -380,14 +389,15 @@ double getPsi(double* MAT1, unsigned int n, unsigned int maxB){
 
 extern "C"{
 	SEXP getPsi202(SEXP MAT1){
-		SEXP dim = getAttrib( MAT1, R_DimSymbol ) ;
+		SEXP MAT1_copy = PROTECT(duplicate(MAT1));
+		SEXP dim = getAttrib( MAT1_copy, R_DimSymbol ) ;
 		int nrow = INTEGER(dim)[0];
 		int ncol = INTEGER(dim)[1];
 
-
+		
 		SEXP psi = allocVector(REALSXP,1);
-		*REAL(psi) = getPsi(REAL(MAT1),nrow,ncol);
-
+		*REAL(psi) = getPsi(REAL(MAT1_copy),nrow,ncol);
+		UNPROTECT(1);
 		return(psi);
 	}
 

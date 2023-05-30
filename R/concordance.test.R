@@ -1,6 +1,7 @@
-singleMatMethods<-c("exact","Rbeta","beta","normal","simulation") ##First must be "exact"
-twoMatMethods<-c("simulation")
+singleMatMethods<-c("exact","Rbeta","beta","normal","bootstrap") ##First must be "exact"
+twoMatMethods<-c("bootstrap")
 
+setClassUnion("numericOrNull", c("numeric", "NULL"))
 
 ############################################
 #' Class ConcordanceTest
@@ -26,7 +27,7 @@ setClass("ConcordanceTest",
     representation = representation(
         pvalue = "numeric",
         psi1 = "numeric",
-        psi2 = "numeric",
+        psi2 = "numericOrNull",
         method="character",
         alternative="character",
         ci.lower="numeric",
@@ -45,8 +46,10 @@ setMethod("initialize",
         if (!is.numeric(dotList[["pvalue"]]) | length(dotList[["pvalue"]])!=1 ){
             stop("pvalue must be a numeric value of length 1")
         }
-        if (dotList[["pvalue"]]<0 | dotList[["pvalue"]]>1  ) {
+        if (!is.na(dotList[["pvalue"]])){
+	        if( dotList[["pvalue"]]<0 | dotList[["pvalue"]]>1  ) {
             stop("pvalue must be 0 <= p <= 1")
+          }
         }
         if (!is.numeric(dotList[["alpha"]]) | length(dotList[["alpha"]])!=1 ){
             stop("alpha must be a numeric value of length 1")
@@ -57,16 +60,20 @@ setMethod("initialize",
         if (!is.numeric(dotList[["psi1"]]) | length(dotList[["psi1"]])!=1 ){
             stop("psi1 must be a numeric value of length 1. Found psi1 = ",dotList[["psi1"]])
         }
-        if (dotList[["psi1"]]<0 | dotList[["psi1"]]>1  ) {
-            stop("psi1 must be 0<=psi1<=1")
-        }
-        if (!is.numeric(dotList[["psi2"]]) | length(dotList[["psi2"]])!=1 ){
-            stop("psi2 must be a numeric value of length 1")
-        }
-        if (!is.na(dotList[["psi2"]])){
-            if (dotList[["psi2"]]<0 | dotList[["psi2"]]>1  ) {
-                stop("psi2 must be 0<=psi2<=1")
-            }
+				if (!is.na(dotList[["psi1"]])){
+		      if (dotList[["psi1"]]<0 | dotList[["psi1"]]>1  ) {
+		          stop("psi1 must be 0<=psi1<=1")
+		      }
+	      }
+        if (!is.null(dotList[["psi2"]])){
+	        if (!is.numeric(dotList[["psi2"]]) | length(dotList[["psi2"]])!=1 ){
+	            stop("psi2 must be a numeric value of length 1")
+	        }
+					if (!is.na(dotList[["psi2"]])){
+	          if (dotList[["psi2"]]<0 | dotList[["psi2"]]>1  ) {
+	              stop("psi2 must be 0<=psi2<=1")
+	          }
+          }
         }
         if (!is.numeric(dotList[["ci.lower"]]) | length(dotList[["ci.lower"]])!=1 ){
             stop("ci.lower must be a numeric value of length 1")
@@ -104,10 +111,10 @@ setMethod("show",
     definition = function(object){
         if (length(getPsi(object))==2){
             if (object$alternative=="greater"){
-                cat("One sided concordance test for difference between two concordances\nAlternative hypothesis: psi1 > psi2\n")
+                cat("One sided concordance test for difference between two concordances\nAlternative hypothesis: psi1 > psi2 (i.e. delta < 0)\n")
             }
             else if (object$alternative=="less"){
-                cat("One sided concordance test for difference between two concordances\nAlternative hypothesis: psi1 < 2/3\n")
+                cat("One sided concordance test for difference between two concordances\nAlternative hypothesis: psi1 < psi2 (i.e. delta > 0)\n")
             }
             else if (object$alternative=="two.sided"){
                 cat("Two sided concordance test for difference between two concordances\nAlternative hypothesis: |psi1 - psi2| > 0\n")
@@ -207,7 +214,7 @@ setMethod(
     signature(x="ConcordanceTest",y="missing"),
     function(x){
         psi<-c(x@psi1,x@psi2)
-        return(psi[!is.na(psi)])
+        return(psi)
     }
 )
 
@@ -246,7 +253,7 @@ setMethod("coef",
         if (length(object$psi)==2) {
             coefMat<-matrix(NA,ncol=6,nrow=1,dimnames=list("",c("psi1","psi2","delta",names(object$ci),"p")))
             coefMat[,1:2]<-object$psi
-            coefMat[,3]<-diff(object$psi)
+            coefMat[,3]<- -1*diff(object$psi)
             coefMat[,4:5]<-object$ci
             coefMat[,6]<-object$pvalue
         } else {
@@ -274,10 +281,11 @@ setMethod("coef",
 #'
 #' @details
 #'  \itemize{
-#' \item Testing the deviation from random concordance: if only one matrix is given (i.e. argument \code{x}), its concordance will be tested against alternative hypothesis of finding a higher concordance under random sampling conditions. For small matrices (depending on number of replicate measurements) an exact method will be used to determine to p-value. In case of larger matrices where the exact approach in not feasible, either the revised-beta approach (default), a beta approximation or a normal approximation is used. To enforce the use of either one method, the \code{method} argument can be used with value "exact","Rbeta","beta" or "normal".
-#' \item Testing for a difference between concordances: if both arguments \code{x} and \code{y} have been given, the equality of concordances of both matrices is tested. The default alternative hypothesis is 'two.sided'. Both matrices must be of equal size and have corresponding missing entries (\code{NA} values). In case of missing data in one matrix, the same entries in the other matrix will also be set to missing. 
+#' \item Testing the deviation from random concordance: if only one matrix is given (i.e. argument \code{x}), its concordance will be tested against the alternative hypothesis of finding a higher concordance under random sampling conditions. For small matrices (depending on number of replicate measurements) an exact method will be used to determine a p-value. In case of larger matrices, where the exact approach in not feasible, either the revised-beta approach (default), a beta approximation, or a normal approximation is used. To enforce the use of either one method, the \code{method} argument can be used with value "exact","Rbeta","beta" or "normal".
+#' \item Testing for a difference between concordances: if both arguments \code{x} and \code{y} have been given, the equality of concordances of both matrices is tested. The default alternative hypothesis is 'two.sided'. Both matrices must be of equal size and have corresponding missing entries (\code{NA} values). In case of missing data in one matrix, the same entries in the other matrix will also be set to missing. This method involves bootstrapping to estimate variance and confidence estimates, with adjustable options via the global R options "nopaco.nCPU" (default=2), "nopaco.nDraws.CI" (default=1e4) and "nopaco.seed" (default = 1). 
 #' }
 #' Unbalanced data due to randomly missing data or an unequal number of repeated measurements per subject is allowed. In that case, missing or unknown values must be set to \code{NA}.
+
 #'
 #'  
 
@@ -290,19 +298,20 @@ setMethod("coef",
 #' @rdname concordance.test
 #'
 #' @examples
-#' require(MASS) ##to use mvrnorm function
+#' require(MASS) ##to use the 'mvrnorm' function
 #' 
 #' #Generate a matrix without concordance
+#' # for three observers in two samples
 #' matRandom <- matrix(rnorm(3*20),20,3)
 #' concordance.test(matRandom) 
 #'
-#' #Generate a matrix with strong concordance
+#' #Generate a corresponding matrix with strong concordance
 #' sigma<-matrix(0.8,3,3)
 #' diag(sigma)<-1
 #' matConcordant <- mvrnorm(20,mu=rep(0,3),Sigma=sigma)
 #' concordance.test(matConcordant)
 #'
-#' #Test concordances between matrices
+#' #Test concordances between the two matrices
 #' aTest <- concordance.test(matConcordant, matRandom)
 #' 
 #' getPsi(aTest)
@@ -334,211 +343,147 @@ function(x,y=NULL,alternative=NULL,alpha=0.05,...){
             method<-singleMatMethods
         }  
     } else if (method=="exact") forceExact<-TRUE
+    
     if (is.null(y)){
         method<-match.arg(method,singleMatMethods)
     } else {
         method<-match.arg(method,twoMatMethods)
     }
-    if (is.null(alternative) & is.null(y)){
+    if (is.null(y)){
         alternative=match.arg(alternative,c('greater','less','two.sided')) #Null hypothesis psi<=2/3
     } else {
         alternative=match.arg(alternative,c('two.sided','greater','less')) #Null hypothesis |psi1-psi2|==0
     }
     if (is.null(y)){
-        if (alternative !="greater") warning("Only alternative='greater' is valid for testing absence of concordance.")
+        if (alternative !="greater") warning("Using alternative='greater' which is the only valid one for testing 'absence of concordance'.")
         alternative='greater'
     }
 
      
     cl <- match.call()
-    standardChecks <- .doStandardChecks(x=x,y=y,doCheck=TRUE)
-	numOfTies<-standardChecks$ties
+    standardChecks <- .doStandardChecks(x=x,y=y)
+		numOfTies<-standardChecks$ties.x+standardChecks$ties.y
     x <- standardChecks$x
     y <- standardChecks$y
    
-	if ( (numOfTies/sum(is.finite(x)))>0.05) {
-		warning("Large proportion of tied values may affect test outcome.");
-	}
+		if (sum(!is.na(x))>0){
+			if ( (numOfTies/sum(!is.na(x)))>0.05) {
+				warning("Large proportion of tied values may affect test outcome.");
+			}
+		}
+		
     obs<-getPsi(x=x,y=y,doCheck=FALSE)
     psi1<-obs[1]
-    psi2<-obs[2]
-    p<-ci.lower<-ci.upper<-as.numeric(NA)
+    psi2<- if(length(obs)==2) {obs[2]} else {NULL}
+    
+    p<-ci.lower<-ci.upper<-NA_real_
 
-    .minPsi<-function(bn){
-        bn<-sort(bn,decreasing=TRUE)
-        maxB<-max(bn)
-        n<-length(bn)
-        Q<-R<-matrix(c(1:(maxB*n)),nrow=n)
-        for (i in seq_along(bn)){
-            R[i,-c(0:bn[i])]<-NA
-        }
-        Q[]<-rank(R)#,ties.method='random')
-        Q[is.na(R)]<-NA
-        getPsi(Q)
-    }
-
-    .confEstimatorBeta<-function(x,mu,p,lower.tail,targetValue){
-        b<-x
-        a<-mu*b/(1-mu)
-        (qbeta(p,a,b,lower.tail=lower.tail)-targetValue)^2
-    }
-   
-    b<-ncol(x)
     if (is.null(y)){
-        if (method=="exact"){
-            exactDist<-list()
-            bn<- rowSums(is.finite(x))
-            sumN<-length(bn)
-            exactDist<-try({
-                exactProb(bn,skipTests=forceExact)
-            },silent=TRUE)
-            if (!inherits(exactDist,"try-error")){
-               
-                p<-max(0,min(1,sum(exactDist[ ((exactDist[,1])>=obs),2])))
-                ci.upper<-max(exactDist[,1])
-       
-            }
-            else if (!is.null(forceExact)){
-                if(forceExact==TRUE) stop(exactDist)
-                else {method<- singleMatMethods[2]}
-            } else { stop("Runtime error: Should not be reached!") }
-        }
-        if (method != "exact"){        
-            obsvar<-getVar(x,doCheck=FALSE) ##Get variance given H0(psi=2/3)
-            bn<-rowSums(is.finite(x))
-            meanB<-sum(bn*(bn*(bn-1)))/sum(bn*(bn-1)) #mean(bn)
-            n<-length(bn)
-            if (method=="Rbeta"){
-                zeta<-(2/3 - sqrt(meanB+1)/(9/2*(meanB-1)^1.5))
-                iii<-2/getOmega(bn)
-                alphaPar<-(4*(meanB+1)/(81*(meanB-1)^3)-((8/9)*(meanB+1)^1.5)/(81*(meanB-1)^4.5))/obsvar-sqrt(4*(meanB+1)/(81*(meanB-1)^3))
-                betaPar<-alphaPar*(9*(meanB-1)^1.5/(2*sqrt(meanB+1))-1)
-             
-                    p<-pbeta(obs-zeta-iii,shape1=alphaPar,shape2=betaPar,lower.tail=FALSE)
-                    est<-optimize(interval=c(1,1e8),mu=obs-zeta-iii,p=p,lower.tail=TRUE,targetValue=2/3-zeta-iii, f=.confEstimatorBeta)
-                    betaEst<-est$minimum
-                    alphaEst<-(obs-zeta-iii)*betaEst/(1-(obs-zeta-iii))
-                    ci.method <- "Rbeta"
-                    ci.lower=max(.minPsi(bn),qbeta(alpha,alphaEst,betaEst,lower.tail=TRUE)+zeta+iii)
-                    ci.upper=1
-                
-            } else if (method=="beta"){
-                m<-2/3
-                v<-obsvar
-                if (v>=(m*(1-m))){stop("Cannot approximate by a beta distribution due to overdispersion of the estimates")}
-                alphaPar<-m*(m*(1-m)/v-1)
-                betaPar<-(1-m)*(m*(1-m)/v-1)
-               
-                    p<-pbeta(obs,shape1=alphaPar,shape2=betaPar,lower.tail=FALSE)
-                    est<-optimize(interval=c(1,1e8),mu=obs,p=p,lower.tail=TRUE,targetValue=2/3, f=.confEstimatorBeta)
-                    betaEst<-est$minimum
-                    alphaEst<-obs*betaEst/(1-obs)
-                    ci.method <- "beta"
-                    ci.upper=1
-                    ci.lower=max(.minPsi(bn),qbeta(alpha,alphaEst,betaEst,lower.tail=TRUE))
-                
-            } else if (method=="normal"){ 
-               
-                    p<-pnorm(q=obs,mean=2/3,sd=sqrt(obsvar),lower.tail=FALSE)
-                    if (p>(alpha/5)) { ##otherwise perform estimate by bootstrap (see below)
-                        ci.method <- "normal"
-                        ci.lower<-qnorm(alpha,mean=obs,sd=sqrt(obsvar),lower.tail=TRUE)
-                        ci.upper<-1
-                    }
-                
-            } else if (method == "simulation"){ stop("simulation is not available for testing a single concordance coefficient")
-            } else {    stop("Unknown method given!") }
-        }#END Single concordance methods
+      b<-ncol(x)
+      if ("exact"%in%method){
+          exactDist<-list()
+          bn<- rowSums(!is.na(x))
+          sumN<-length(bn)
+          exactDist<-try({
+              exactProb(bn,skipTests=forceExact)
+          },silent=TRUE)
 
-        if (force.ci.bootstrap == TRUE | is.na(ci.lower) | is.na(ci.upper)) {
-            
-            samplePsi<-.bootstrapCI(x=x,y=NULL)
-            bs<-samplePsi[,1]
-            ci.method<-"bootstrap"
-            ci.lower<-quantile(bs,alpha)
-            ci.upper<-1
-        }
+          if (!inherits(exactDist,"try-error")){
+              p<-max(0,min(1,sum(exactDist[ ((exactDist[,1])>=obs),2])))
+              ci.upper<-max(exactDist[,1])
+          }
+          else if (!is.null(forceExact)){
+              if(forceExact==TRUE) stop(exactDist)
+              else {method<- singleMatMethods[2]}
+          } else { stop("Runtime error: Something went wrong in estimating the exactDistribution.")  }
+      }
+      
+      if (!"exact"%in%method){
+	      if (method[1]=="Rbeta"){
+            res<-.rBetaApproximation(x, alpha); 
+        } else if (method[1]=="beta"){
+            res<-.betaApproximation(x, alpha); 
+        } else if (method[1]=="normal"){ 
+            res<-.normalApproximation(x, alpha); 
+        } else if (method[1] == "bootstrap"){
+          stop("bootstrap is not available for testing a single concordance coefficient")
+      	} else { stop("Unknown method given!") }
+      	
+				p<-res$p
+	      ci.method<-res$ci.method
+	      ci.lower<-res$ci.lower
+	      ci.upper<-res$ci.upper
+      } #END Single concordance methods
+               
+      if (force.ci.bootstrap == TRUE | is.na(ci.lower) | is.na(ci.upper)) {
+           
+          samplePsi<-.bootstrapCI(x=x,y=NULL)
+          bs<-samplePsi[,1]
+          ci.method<-"bootstrap"
+          ci.lower<-quantile(bs,alpha,na.rm=TRUE)	
+          ci.upper<-1
+      }
 
     } else if (!is.null(y)){
-		cs<-colSums(is.finite(x));
-		includeReps<-cs>2
-		if (any(includeReps==FALSE)){warning("Ignoring replicates with less than three values in order to stabilize variance estimation.")}
-		
-		x<-x[,includeReps]
-		y<-y[,includeReps]
+			cs<-colSums(!is.na(x));
+			includeReps<-cs>2
+			if (any(includeReps==FALSE)){
+				warning("Ignoring replicates with less than three values in order to stabilize variance estimation.")
+			}
+			
+			x<-x[,includeReps, drop=FALSE]
+			y<-y[,includeReps, drop=FALSE]
+			
+      b<-ncol(x)
+		  bn <- rowSums(!is.na(x))
 
-        bn<- rowSums(is.finite(x))
-        method<-"simulation"
-        rmat1<-x
-        rmat1[]<-rank(x)
-        rmat2<-y
-        rmat2[]<-rank(y)
-        rmat1[!is.finite(x)]<-NA
-        rmat2[!is.finite(y)]<-NA
-        mergemat<-cbind(rmat1,rmat2)
-        mergemat[]<-rank(mergemat) 
-        mergemat[!is.finite(cbind(rmat1,rmat2))]<-NA
-		am<-getAgreeMat(mergemat)  
-        cormat<-am$mat
-        cormat[]<-rfromPsi(am$mat)
-        
-        b<-ncol(x)
-        r1<-(sum(cormat[1:b,1:b]+cormat[-c(1:b),-c(1:b)])/2 - b)/(b*b-b) #Average observed correlation
-        r2<-(sum(cormat[1:b,-c(1:b)]+cormat[-c(1:b),1:b])/2)/(b*b) #Average observed correlation
-        par<-c(r1,r2)
-        cormatH0<-matrix(par[2],2*b,2*b)
-        cormatH0[1:(b),1:(b)]<-par[1]
-        cormatH0[-c(1:(b)),-c(1:(b))]<-par[1]
-        diag(cormatH0)<-1
-        if (!all(eigen(cormatH0)$value>0)){ cormatH0<-as.matrix(nearPD(cormatH0,keepDiag=TRUE,maxit=10000)$mat)}
-        SigmaEV <- eigen(cormatH0)
-        mychol<-t(SigmaEV$vectors %*% diag(sqrt(SigmaEV$values)))
-        
-        bootstrapped.delta<-apply(.bootstrapCI(x,y),1,diff)
+			observed.delta  <- -1*diff(obs) #psi1-psi2
+			
+      method<-"bootstrap"
 
-        delta<-diff(obs) 
-
-        meanN<-mean(am$n)
-        obsvar<-var(bootstrapped.delta)
-        p<-NA
-        if (alternative=='less') {
-            p<-pnorm(delta,mean=0,sd=sqrt(obsvar) ,lower.tail=TRUE)
-            if ((p>(alpha/5))) { ##otherwise perform estimate by bootstrap (see below)
-                ci.method<-"normal"
-                ci.lower<-.minPsi(bn)-1 
-                ci.upper<-qnorm(alpha,mean=delta,sd=sqrt(obsvar),lower.tail=FALSE)
-            }
-        } else if (alternative=='greater') {
-            p<-pnorm(delta,mean=0,sd=sqrt(obsvar) ,lower.tail=FALSE)  
-
-            if ((p>(alpha/5))) { ##otherwise perform estimate by bootstrap (see below)
-                ci.method<-"normal"
-                ci.lower<-qnorm(alpha,mean=delta,sd=sqrt(obsvar),lower.tail=TRUE)
-                ci.upper<--1*(.minPsi(bn)-1 )
-            }
-        } else if (alternative=='two.sided')  {
-            p<-2*pnorm(abs(delta),mean=0,sd=sqrt(obsvar) ,lower.tail=FALSE)
-
-            if ((p>(alpha/5))) { ##otherwise perform estimate by bootstrap (see below)
-                ci.method<-"normal"
-                ci.lower<-qnorm(alpha/2,mean=delta,sd=sqrt(obsvar),lower.tail=TRUE)
-                ci.upper<-qnorm(alpha/2,mean=delta,sd=sqrt(obsvar),lower.tail=FALSE)
-            }
+      
+      bootstrapped.delta<--1*apply(.bootstrapCI(x,y),1,diff)
+      
+      obsvar<-var(bootstrapped.delta)
+      p<-NA_real_
+      
+      if (alternative=='less') { #Ha:psi1<psi2
+        p<-pnorm(observed.delta,mean=0,sd=sqrt(obsvar) ,lower.tail=TRUE)
+        if ((p>(alpha/5)) & force.ci.bootstrap==FALSE) { ##otherwise perform estimate by bootstrap (see below)
+          ci.method<-"normal"
+          ci.lower<-.minPsi(bn)-1 
+          ci.upper<-qnorm(alpha,mean=observed.delta,sd=sqrt(obsvar),lower.tail=FALSE)
         }
-        if (force.ci.bootstrap == TRUE | is.na(ci.lower) | is.na(ci.upper)) {
-            ci.method<-"bootstrap"
+      } else if (alternative=='greater') { #Ha:psi1>psi2
+        p<-pnorm(observed.delta,mean=0,sd=sqrt(obsvar) ,lower.tail=FALSE)  
 
-            if (alternative=='less') {
-                ci.lower<-.minPsi(bn)
-                ci.upper<-quantile(bootstrapped.delta,1-alpha)
-            } else if (alternative=='greater') {
-                ci.lower<-quantile(bootstrapped.delta,alpha)
-                ci.upper<-1
-            } else if (alternative=='two.sided') {
-                ci.lower<-quantile(bootstrapped.delta,alpha/2)
-                ci.upper<-quantile(bootstrapped.delta,1-alpha/2)
-            }
+        if ((p>(alpha/5)) & force.ci.bootstrap==FALSE) { ##otherwise perform estimate by bootstrap (see below)
+          ci.method<-"normal"
+          ci.lower<-qnorm(alpha,mean=observed.delta,sd=sqrt(obsvar),lower.tail=TRUE)
+          ci.upper<--1*(.minPsi(bn)-1 )
+          }
+      } else if (alternative=='two.sided')  {  #Ha:psi1-psi2 != 0
+        p<-2*pnorm(abs(observed.delta),mean=0,sd=sqrt(obsvar) ,lower.tail=FALSE)
+
+        if ((p>(alpha/5)) & force.ci.bootstrap==FALSE) { ##otherwise perform estimate by bootstrap (see below)
+          ci.method<-"normal"
+          ci.lower<-qnorm(alpha/2,mean=observed.delta,sd=sqrt(obsvar),lower.tail=TRUE)
+          ci.upper<-qnorm(alpha/2,mean=observed.delta,sd=sqrt(obsvar),lower.tail=FALSE)
         }
+      }
+      if (force.ci.bootstrap == TRUE | is.na(ci.lower) | is.na(ci.upper)) {
+          ci.method<-"bootstrap"
+          if (alternative=='less') { #Ha:psi1<psi2
+              ci.lower<-.minPsi(bn)-1 
+              ci.upper<-quantile(bootstrapped.delta,1-alpha)
+          } else if (alternative=='greater') { #Ha:psi1>psi2
+              ci.lower<-quantile(bootstrapped.delta,alpha)
+              ci.upper<--1*(.minPsi(bn)-1 )
+          } else if (alternative=='two.sided') { #Ha:psi1-psi2 != 0
+              ci.lower<-quantile(bootstrapped.delta,alpha/2)
+              ci.upper<-quantile(bootstrapped.delta,1-alpha/2)
+          }
+      }
     }
     result<- new("ConcordanceTest",
         pvalue = p,
