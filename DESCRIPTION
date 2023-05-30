@@ -21,7 +21,5 @@ Imports:
     stats
 Suggests:
     MASS
-SystemRequirements: 
-    C++11
 RoxygenNote: 7.2.3
 Encoding: UTF-8
