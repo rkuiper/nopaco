@@ -21,7 +21,7 @@ getPsi(x, y, ...)
 
 \S4method{getPsi}{data.frame,data.frame}(x, y, ...)
 
-\S4method{getPsi}{matrix,`NULL`}(x, y, ...)
+\S4method{getPsi}{matrix,NULL}(x, y, ...)
 
 \S4method{getPsi}{matrix,matrix}(x, y, ...)
 }

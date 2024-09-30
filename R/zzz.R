@@ -68,7 +68,7 @@ setMethod(
 
 
 
-getVar<-function(mat,...){
+getVar<-function(x,...){
     dots<-list(...)
     doCheck = TRUE
     if (!is.null(dots$doCheck)){doCheck = dots$doCheck}

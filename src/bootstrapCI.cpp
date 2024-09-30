@@ -314,29 +314,29 @@ extern "C" {
    
         SEXP dim1, dim2;
 
-		rP_nDraws = PROTECT(coerceVector(rP_nDraws, INTSXP));
-		rP_nCPU = PROTECT(coerceVector(rP_nCPU, INTSXP));
-    	MAT1 = PROTECT(coerceVector(MAT1, REALSXP));
+		rP_nDraws = PROTECT(Rf_coerceVector(rP_nDraws, INTSXP));
+		rP_nCPU = PROTECT(Rf_coerceVector(rP_nCPU, INTSXP));
+    	MAT1 = PROTECT(Rf_coerceVector(MAT1, REALSXP));
 
 		/*check input parameters*/
-        PROTECT(dim1 = getAttrib( MAT1, R_DimSymbol ) );
+        PROTECT(dim1 = Rf_getAttrib( MAT1, R_DimSymbol ) );
 		nrow1 = INTEGER(dim1)[0];
 		ncol1 = INTEGER(dim1)[1];
   
         if (MAT2!=R_NilValue){
-    		MAT2 = PROTECT(coerceVector(MAT2, REALSXP));
-            dim2 = PROTECT(getAttrib( MAT2, R_DimSymbol ));
+    		MAT2 = PROTECT(Rf_coerceVector(MAT2, REALSXP));
+            dim2 = PROTECT(Rf_getAttrib( MAT2, R_DimSymbol ));
 		    nrow2 = INTEGER(dim2)[0];
 		    ncol2 = INTEGER(dim2)[1];
 
-            if ((nrow1!=nrow2) | (ncol1!=ncol2))  {error("Dimensions of both matrices must be the same.");}
+            if ((nrow1!=nrow2) | (ncol1!=ncol2))  {Rf_error("Dimensions of both matrices must be the same.");}
         }
         
         
 		int nCPU = *INTEGER(rP_nCPU);
-		if (nCPU > 64 ) {error("nCPU must be < 65.");}
+		if (nCPU > 64 ) {Rf_error("nCPU must be < 65.");}
         SEXP output1;
-		PROTECT(output1 = allocMatrix(REALSXP, *INTEGER(rP_nDraws),2));
+		PROTECT(output1 = Rf_allocMatrix(REALSXP, *INTEGER(rP_nDraws),2));
 		
         if (nrow2>0){            
 			startMultithreadedSampling(REAL(MAT1),REAL(MAT2),*INTEGER(rP_nDraws),ncol1,ncol2, nrow1, nrow2, nCPU, REAL(output1),REAL(output1)+*INTEGER(rP_nDraws));

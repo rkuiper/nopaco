@@ -204,7 +204,7 @@ SEXP exactDistr202(SEXP bn,SEXP skipTests)
     //Initialize
     //-------------------------------------------------------------------------
 
-    nSubjects= length(bn);
+    nSubjects= Rf_length(bn);
 	iKeyLen=(nSubjects>>1)+(nSubjects&1); //=ceiling(n/2)
 
     pMaxBperSubject=(int*)calloc(nSubjects+1,sizeof(int));
@@ -230,16 +230,16 @@ SEXP exactDistr202(SEXP bn,SEXP skipTests)
 
 	if (nGreaterThan15>0 || nBetween1and15==0 || nSmallerThan1>0)
 	{
-	    error("Number of replicates in all subject cannot exceed 15. In addition there must be at least one subject that has >1 replicates.")  ;
+	    Rf_error("Number of replicates in all subject cannot exceed 15. In addition there must be at least one subject that has >1 replicates.")  ;
 	}
 
 	if (LOGICAL(skipTests)[0]==false){
-	    if( (imaxB>6) &  (nSubjects>10))    error("Exact: Number of subjects is limited to 10 in case of 7 replicate measurements")  ;
-	    if( (imaxB>5) &  (nSubjects>13))    error("Exact: Number of subjects is limited to 13 in case of 6 replicate measurements")  ;
-	    if( (imaxB>4) &  (nSubjects>17))    error("Exact: Number of subjects is limited to 17 in case of 5 replicate measurements")  ;
-	    if( (imaxB>3) &  (nSubjects>25))    error("Exact: Number of subjects is limited to 25 in case of 4 replicate measurements")  ;
-	    if( (imaxB>2) &  (nSubjects>50))    error("Exact: Number of subjects is limited to 50 in case of 3 replicate measurements")  ;
-	    if( (imaxB>1) &  (nSubjects>150))    error("Exact: Number of subjects is limited to 150 in case of 2 replicate measurements")  ;
+	    if( (imaxB>6) &  (nSubjects>10))    Rf_error("Exact: Number of subjects is limited to 10 in case of 7 replicate measurements")  ;
+	    if( (imaxB>5) &  (nSubjects>13))    Rf_error("Exact: Number of subjects is limited to 13 in case of 6 replicate measurements")  ;
+	    if( (imaxB>4) &  (nSubjects>17))    Rf_error("Exact: Number of subjects is limited to 17 in case of 5 replicate measurements")  ;
+	    if( (imaxB>3) &  (nSubjects>25))    Rf_error("Exact: Number of subjects is limited to 25 in case of 4 replicate measurements")  ;
+	    if( (imaxB>2) &  (nSubjects>50))    Rf_error("Exact: Number of subjects is limited to 50 in case of 3 replicate measurements")  ;
+	    if( (imaxB>1) &  (nSubjects>150))    Rf_error("Exact: Number of subjects is limited to 150 in case of 2 replicate measurements")  ;
 	}
 
     sort(pMaxBperSubject,pMaxBperSubject+nSubjects);
@@ -280,7 +280,7 @@ SEXP exactDistr202(SEXP bn,SEXP skipTests)
 
     nElements=pPrevNode->size();
 
-    PROTECT(plhs = allocMatrix(REALSXP, nElements, 2));
+    PROTECT(plhs = Rf_allocMatrix(REALSXP, nElements, 2));
     pConcordance=REAL(plhs);
     pProbability=REAL(plhs)+nElements;
 

@@ -1,6 +1,11 @@
 
 # NEWS file for the nopaco package
 
+## Version 1.0.8
+
+* Bug fix: Fixed an issue where concordance.test would result in errors for larger datasets due to a bug in the getVar function.
+* Compilation Compatibility: Updated the package to allow compilation with R_NO_REMAP defined. This change anticipates the default setting expected in future R versions, specifically starting from R 4.5.0.
+
 ## Version 1.0.7
 
 * The default nopaco.nCPU setting previously set by parallel::detectCores(), is now maximized to a value of 2. If higher values are required, it can be set manually. 

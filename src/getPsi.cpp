@@ -6,7 +6,7 @@
 // Description : concordance
 //----------------------------------------------------------------
 
-#include <iostream> //DEBUG ONLY!!!
+//#include <iostream> //DEBUG ONLY!!!
 #include <vector>
 #include <map>
 #include <time.h>
@@ -389,13 +389,13 @@ double getPsi(double* MAT1, unsigned int n, unsigned int maxB){
 
 extern "C"{
 	SEXP getPsi202(SEXP MAT1){
-		SEXP MAT1_copy = PROTECT(duplicate(MAT1));
-		SEXP dim = getAttrib( MAT1_copy, R_DimSymbol ) ;
+		SEXP MAT1_copy = PROTECT(Rf_duplicate(MAT1));
+		SEXP dim = Rf_getAttrib( MAT1_copy, R_DimSymbol ) ;
 		int nrow = INTEGER(dim)[0];
 		int ncol = INTEGER(dim)[1];
 
 		
-		SEXP psi = allocVector(REALSXP,1);
+		SEXP psi = Rf_allocVector(REALSXP,1);
 		*REAL(psi) = getPsi(REAL(MAT1_copy),nrow,ncol);
 		UNPROTECT(1);
 		return(psi);
