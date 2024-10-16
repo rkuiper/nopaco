@@ -50,15 +50,25 @@ struct PREDICATE_K_V_PAIR
 {
    bool operator() (lKEY_dVALUE_PAIR pair1,lKEY_dVALUE_PAIR pair2)
     {
-	     return pair1.dValue<pair2.dValue;
+	    if (isnan(pair1.dValue)) return false; // NaN should be at the end
+        if (isnan(pair2.dValue)) return true;  // NaN should be at the end
+        return pair1.dValue<pair2.dValue;
     }
 	bool operator() (lKEY_lVALUE_PAIR pair1,lKEY_lVALUE_PAIR pair2)
     {
-		return pair1.lValue<pair2.lValue;
+		if (isnan(pair1.lValue)) return false; // NaN should be at the end
+        if (isnan(pair2.lValue)) return true;  // NaN should be at the end
+        return pair1.lValue<pair2.lValue;
     }
 } predicate_k_v_pair;
 //----------------------------------------------------------------
 
+
+bool nanAwareCompare(double a, double b) {
+    if (isnan(a)) return false; // NaN should be at the end
+    if (isnan(b)) return true;  // NaN should be at the end
+    return a < b; // Standard comparison for non-NaN values
+}
 
 
 template <typename T>
@@ -241,17 +251,9 @@ void DataClass::S2R(){
 	}
 
 	for (i = (this->nrow*this->ncol - nNAN); i < (this->nrow*this->ncol ); i++){
-		//this->rMAT[pKVP[i].lPosition] = std::numeric_limits<double>::infinity();  //Assign the missing values as inifinies.
         this->rMAT[pKVP[i].lPosition] = NAN;  //Assign the missing values as inifinies.
 	}
- /*std::cerr<<"R:\n";
-	for (j = 0; j < (this->ncol ); j++){
-		std::cerr<<"\ni";
-		for (i = 0; i < (this->nrow ); i++){
-			std::cerr<<this->rMAT[ j* this->nrow + i] <<", ";
-		}
-	}*/
-	
+
 	free(pKVP);
 }
 //----------------------------------------------------------------
@@ -259,15 +261,11 @@ void DataClass::S2R(){
 
 
 void DataClass::orderPerSubject(){
-	//pmat1 is a pointer to double matrix, In the rows are the observers (microarrays), in the columns the subjects (patients)
+    //Order values increasingly  per subject  (NaN last)
+	//Note: observers in rows, subject in columns
 	unsigned int j;
 	for (j = 0; j < this->ncol; j++){
-		sort(this->sMAT+j* this->nrow, this->sMAT+(j+1)* this->nrow); //sort column j
-		//std::cerr<<"\ncol " << j <<": ";
-		//for (int k = 0; k < this->nrow; k++) {
-		// std::cerr<< *(this->sMAT+j*this->nrow+k)<<",";
-	  //}
-		//std::cerr<<"\n";
+		sort(this->sMAT+j* this->nrow, this->sMAT+(j+1)* this->nrow, nanAwareCompare); //sort column j
 	}
 }
 //----------------------------------------------------------------
@@ -280,7 +278,6 @@ void DataClass::BN_from_S(){
     if (this->nrow>0){
         for (j = 0; j < this->ncol; j++){ //loop subjects
 		    i = this->nrow-1;
-		    //while ((*(this->sMAT + j * this->nrow + i))==std::numeric_limits<double>::infinity()){ i--;}
 		    while (isnan(*(this->sMAT + j * this->nrow + i))){ i--;}
 		    this->BN[j] = i+1; //Set the number of real values for patient j
 		    (this->T)+=this->BN[j]; //And the number of pivots
@@ -289,7 +286,7 @@ void DataClass::BN_from_S(){
 	    for (j = 0; j < this->ncol; j++){
 		    this->omega += this->BN[j]*(this->BN[j]-1) * (this->T-this->BN[j]);
 	    }
-    }
+	}
 }
 
 //----------------------------------------------------------------
@@ -303,9 +300,6 @@ void DataClass::preprocess( void ){
 	
 	//Convert to int
 	this->S2R();
-
-	//Determine BN (= vector of length b indicating the number of known patients with 1..b measurments)  and T (=total number of pivots irrespective of b: t_b +b = T);
-	//this->BN_from_R();
 
 	this->R2Q();
 
@@ -389,16 +383,19 @@ double getPsi(double* MAT1, unsigned int n, unsigned int maxB){
 
 extern "C"{
 	SEXP getPsi202(SEXP MAT1){
-		SEXP MAT1_copy = PROTECT(Rf_duplicate(MAT1));
-		SEXP dim = Rf_getAttrib( MAT1_copy, R_DimSymbol ) ;
-		int nrow = INTEGER(dim)[0];
-		int ncol = INTEGER(dim)[1];
+        SEXP MAT1_copy, dim, psi;
 
-		
-		SEXP psi = Rf_allocVector(REALSXP,1);
-		*REAL(psi) = getPsi(REAL(MAT1_copy),nrow,ncol);
-		UNPROTECT(1);
-		return(psi);
+	    MAT1_copy = PROTECT(Rf_duplicate(MAT1));
+	    dim = Rf_getAttrib( MAT1_copy, R_DimSymbol ) ;
+
+	    int nrow = INTEGER(dim)[0];
+	    int ncol = INTEGER(dim)[1];
+
+	    psi = Rf_allocVector(REALSXP,1);
+	    *REAL(psi) = getPsi(REAL(MAT1_copy),nrow,ncol);
+
+	    UNPROTECT(1);
+	    return(psi);
 	}
 
 

@@ -1,6 +1,9 @@
 
 # NEWS file for the nopaco package
 
+## Version 1.0.9
+* Bug fix: Fixed an issue where getPsi would results in NaN if the inputmatrix contained any unknowns (NA or NaN)
+
 ## Version 1.0.8
 
 * Bug fix: Fixed an issue where concordance.test would result in errors for larger datasets due to a bug in the getVar function.
